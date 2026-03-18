@@ -112,8 +112,8 @@ nav.stuck{background:rgba(4,2,14,.92);border-color:var(--border);backdrop-filter
    HERO
 ═══════════════════════════════════════════ */
 #hero{
-  min-height:100vh;display:flex;align-items:center;
-  padding:0 3.5rem;position:relative;overflow:hidden;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:0 3.5rem;position:relative;overflow:hidden;text-align:center;
 }
 
 /* Synthwave floor grid */
@@ -173,7 +173,7 @@ nav.stuck{background:rgba(4,2,14,.92);border-color:var(--border);backdrop-filter
 .blob-bl{bottom:-10%;left:20%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,45,120,.1),transparent 65%);animation:bfloat 10s 6s ease-in-out infinite}
 @keyframes bfloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-40px) scale(1.08)}}
 
-.hero-content{position:relative;z-index:5;max-width:900px}
+.hero-content{position:relative;z-index:5;max-width:900px;width:100%;margin:0 auto;text-align:center}
 
 .hero-tag{
   display:inline-flex;align-items:center;gap:.8rem;
@@ -218,12 +218,12 @@ nav.stuck{background:rgba(4,2,14,.92);border-color:var(--border);backdrop-filter
 
 .hero-desc{
   font-size:1rem;line-height:1.85;color:var(--text2);max-width:540px;
-  margin-bottom:2.5rem;font-weight:300;
+  margin:0 auto 2.5rem;font-weight:300;
   opacity:0;animation:riseIn .9s .75s var(--ease-out-expo) forwards;
 }
 
 .hero-btns{
-  display:flex;gap:1rem;flex-wrap:wrap;
+  display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
   opacity:0;animation:riseIn .9s .9s var(--ease-out-expo) forwards;
 }
 
@@ -290,7 +290,7 @@ nav .nav-inner{
 section{padding:8rem 3.5rem;position:relative}
 
 .sec-eyebrow{
-  display:flex;align-items:center;gap:1rem;margin-bottom:1rem;
+  display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1rem;
 }
 .sec-eyebrow-num{font-family:var(--fm);font-size:.58rem;letter-spacing:.25em;color:var(--pink)}
 .sec-eyebrow-line{height:1px;width:40px;background:var(--pink);box-shadow:var(--gp)}
@@ -299,19 +299,20 @@ section{padding:8rem 3.5rem;position:relative}
   font-family:var(--fh);font-weight:700;
   font-size:clamp(2rem,5vw,3.8rem);
   letter-spacing:.04em;margin-bottom:4rem;
-  position:relative;display:inline-block;
+  position:relative;display:block;
+  text-align:center;
 }
 .sec-title::after{
-  content:'';position:absolute;left:0;bottom:-8px;
-  width:100%;height:2px;
-  background:linear-gradient(to right,var(--pink),var(--violet),var(--cyan),transparent);
+  content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-8px;
+  width:60%;height:2px;
+  background:linear-gradient(to right,transparent,var(--pink),var(--violet),var(--cyan),transparent);
   box-shadow:0 0 8px var(--pink);
 }
 
 /* scroll reveal */
 .sr{opacity:0;transform:translateY(36px);transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo)}
 .sr.in{opacity:1;transform:none}
-.sr-left{opacity:0;transform:translateX(-36px);transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo)}
+.sr-left{opacity:0;transform:translateY(36px);transition:opacity .8s var(--ease-out-expo),transform .8s var(--ease-out-expo)}
 .sr-left.in{opacity:1;transform:none}
 
 /* ═══════════════════════════════════════════
@@ -417,7 +418,7 @@ section{padding:8rem 3.5rem;position:relative}
 ═══════════════════════════════════════════ */
 #experience{background:var(--bg1)}
 
-.timeline{position:relative;padding-left:2rem}
+.timeline{position:relative;padding-left:2rem;max-width:800px;margin:0 auto}
 .timeline::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:1px;
   background:linear-gradient(to bottom,var(--pink) 0%,var(--violet) 50%,transparent 100%);
