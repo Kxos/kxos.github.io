@@ -563,8 +563,9 @@ if(window.matchMedia('(pointer:fine)').matches){
       const target = document.getElementById('game' + gameId);
       if(target) target.classList.add('active');
 
-      // reset game state immediately
-      if(window._neonRunReset) window._neonRunReset();
+      // avvia (o riavvia) il loop del gioco
+      if(window._neonRunStop)  window._neonRunStop();
+      if(window._neonRunStart) window._neonRunStart();
 
       // show panel
       arcadePanel.classList.add('visible');
@@ -649,6 +650,9 @@ if(window.matchMedia('(pointer:fine)').matches){
     }
 
     playEjectSound();
+
+    // ferma subito il loop del gioco
+    if(window._neonRunStop) window._neonRunStop();
 
     // tenda synthwave: le due ante scorrono verso il centro (.52s),
     // poi chiudiamo davvero il pannello e resettiamo le tende
@@ -1315,8 +1319,9 @@ if(window.matchMedia('(pointer:fine)').matches){
   }
 
   // ── MAIN LOOP ──
+  let rafId = null;
   function loop(){
-    requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(loop);
     frame++;
     ctx.clearRect(0,0,W,H);
 
@@ -1379,7 +1384,20 @@ if(window.matchMedia('(pointer:fine)').matches){
     drawHUD();
   }
 
-  loop();
+  // Non avviare il loop automaticamente — aspetta che il pannello sia aperto
+  window._neonRunStart = function(){
+    if(rafId) return; // già in esecuzione
+    window._neonRunReset();
+    loop();
+  };
+
+  window._neonRunStop = function(){
+    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+    // Riporta in stato idle pulito
+    state = 'idle';
+    startMsg.classList.remove('hidden');
+    overMsg.classList.remove('show');
+  };
 })();
 
 /* ═══════════════════════════════════
