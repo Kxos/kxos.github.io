@@ -111,6 +111,7 @@ export function drawSun(ctx, W, H) {
 
 /**
  * Disegna le due catene montuose (sfondo + primo piano).
+ * @param {CanvasRenderingContext2D} ctx
  * @param {{ x, y }[][]} mountains - [mtn2 (sfondo), mtn1 (primo piano)]
  */
 export function drawMountains(ctx, mountains) {
