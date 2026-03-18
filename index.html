@@ -167,7 +167,7 @@ nav.stuck{background:rgba(4,2,14,.92);border-color:var(--border);backdrop-filter
 
 /* Mountains silhouette */
 .hero-mtn{
-  position:absolute;bottom:22%;left:0;right:0;height:160px;
+  position:absolute;bottom:22%;left:0;right:0;height:clamp(80px,14vw,200px);
   pointer-events:none;
 }
 
@@ -2168,12 +2168,10 @@ footer{
       ctx.stroke();
     }
 
-    // ── sun parallax via CSS transform ──
-    // Solo movimento orizzontale — il verticale causa il sole a uscire dal pavimento
+    // ── sun: posizione fissa, no parallax ──
     if(sunEl && sunGlowEl){
-      const px = rmx * 14; // ±14px orizzontale, segue il mouse
-      sunEl.style.transform     = `translateX(calc(-50% + ${px}px))`;
-      sunGlowEl.style.transform = `translateX(calc(-50% + ${px*.5}px))`;
+      sunEl.style.transform     = `translateX(-50%)`;
+      sunGlowEl.style.transform = `translateX(-50%)`;
     }
 
     requestAnimationFrame(draw);
