@@ -44,15 +44,20 @@ export function initNeonRun() {
 
   const LW = 880, LH = 220;
   const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+  const MAX_DPR  = isMobile ? 1.5 : (window.devicePixelRatio || 1);
+  const MS_PER_FRAME = isMobile ? 1000/30 : 0;
+  let lastTs = 0;
 
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return false;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     canvas.width  = rect.width  * dpr;
     canvas.height = rect.height * dpr;
     ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(canvas.width / LW, canvas.height / LH);
+    buildStaticBg();
+    buildGroundGrad();
     return true;
   }
   window._neonRunResize = function() {
@@ -72,6 +77,56 @@ export function initNeonRun() {
     obs1:'#ff2d78', obs2:'#b44fff', particle:'#ffd93d', score:'#00f5ff', hiscore:'#ffd93d',
   };
 
+  // ── STATIC OFFSCREEN BG (sky+stars+sun+mountains) ──
+  let bgCanvas = null;
+  function buildStaticBg() {
+    bgCanvas = document.createElement('canvas');
+    bgCanvas.width = LW; bgCanvas.height = LH;
+    const bc = bgCanvas.getContext('2d');
+
+    // sky
+    const sky = bc.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#04020e'); sky.addColorStop(.6,'#0b0620'); sky.addColorStop(1,'#150830');
+    bc.fillStyle = sky; bc.fillRect(0,0,W,H);
+
+    // stars (static)
+    const starCount = isMobile ? 20 : 55;
+    for (let i = 0; i < starCount; i++) {
+      const x=Math.random()*W, y=Math.random()*(H*.52), r=Math.random()*1.1+.3;
+      bc.beginPath(); bc.arc(x,y,r,0,Math.PI*2);
+      bc.fillStyle=`rgba(240,236,255,${.3+Math.random()*.4})`; bc.fill();
+    }
+
+    // sun
+    if (!isMobile) {
+      const sx=W/2,sy=H*.38,sr=75;
+      const g=bc.createRadialGradient(sx,sy,0,sx,sy,sr*3);
+      g.addColorStop(0,'rgba(255,45,120,.2)'); g.addColorStop(1,'transparent');
+      bc.fillStyle=g; bc.fillRect(sx-sr*3,sy-sr*2,sr*6,sr*3);
+      bc.save(); bc.beginPath(); bc.arc(sx,sy,sr,Math.PI,0); bc.closePath(); bc.clip();
+      const sg=bc.createLinearGradient(sx-sr,sy,sx+sr,sy);
+      sg.addColorStop(0,'#ff6baf'); sg.addColorStop(.5,'#ff2d78'); sg.addColorStop(1,'#ff6baf');
+      bc.fillStyle=sg; bc.shadowColor='#ff2d78'; bc.shadowBlur=16; bc.fill(); bc.shadowBlur=0;
+      for(let i=0;i<8;i++){ bc.fillStyle='rgba(4,2,14,.88)'; bc.fillRect(sx-sr,sy-5-i*7,sr*2,3.5); }
+      bc.restore();
+    } else {
+      // simplified sun on mobile
+      const sx=W/2,sy=H*.38,sr=75;
+      bc.fillStyle='#ff2d78';
+      bc.beginPath(); bc.arc(sx,sy,sr,Math.PI,0); bc.closePath(); bc.fill();
+      bc.fillStyle='rgba(4,2,14,.88)';
+      for(let i=0;i<8;i++) bc.fillRect(sx-sr,sy-5-i*7,sr*2,3.5);
+    }
+
+    // mountains
+    [mtn2, mtn1].forEach((pts, idx) => {
+      bc.beginPath(); pts.forEach((p,i)=>i===0?bc.moveTo(p.x,p.y):bc.lineTo(p.x,p.y)); bc.closePath();
+      bc.fillStyle=idx===0?'rgba(7,4,18,.78)':'rgba(7,4,18,.88)'; bc.fill();
+      bc.beginPath(); pts.forEach((p,i)=>i===0?bc.moveTo(p.x,p.y):bc.lineTo(p.x,p.y)); bc.closePath();
+      bc.fillStyle=idx===0?C.mtn2:C.mtn; bc.fill();
+    });
+  }
+
   let state = 'idle', score = 0, hiscore = 0, frame = 0, speed = 4;
   let particles = [], obstacles = [], nextObs = 100, gridOffsetY = 0;
   const groundY = 24, groundLineY = H - groundY;
@@ -81,11 +136,6 @@ export function initNeonRun() {
     get drawY(){ return groundLineY - (this.ducking ? DUCK_H : DINO_H) + this.y; },
   };
 
-  // Static scenery — generated once
-  const stars = Array.from({length:55},()=>({
-    x:Math.random()*W, y:Math.random()*(H*.52),
-    r:Math.random()*1.1+.3, blink:Math.random()*Math.PI*2,
-  }));
   function genMtn(amp,base){
     const pts=[{x:0,y:H*base}];
     for(let x=0;x<=W;x+=36) pts.push({x,y:H*base - Math.random()*H*amp*(.3+Math.random()*.4)});
@@ -94,9 +144,7 @@ export function initNeonRun() {
   }
   const mtn1 = genMtn(.7,.5), mtn2 = genMtn(.42,.42);
 
-  // Cached sky gradient
-  const skyGrad = ctx.createLinearGradient(0,0,0,H);
-  skyGrad.addColorStop(0,'#04020e'); skyGrad.addColorStop(.6,'#0b0620'); skyGrad.addColorStop(1,'#150830');
+  buildStaticBg();
 
   function reset() {
     score=0; frame=0; speed=4;
@@ -123,6 +171,7 @@ export function initNeonRun() {
   if(btnDuck){ btnDuck.addEventListener('touchstart',e=>{e.preventDefault();startDuck();},{passive:false}); btnDuck.addEventListener('touchend',e=>{e.preventDefault();stopDuck();},{passive:false}); btnDuck.addEventListener('mousedown',()=>startDuck()); btnDuck.addEventListener('mouseup',()=>stopDuck()); }
 
   function spawnParticles(x,y,type){
+    if (isMobile) return; // skip particles on mobile
     const n=type==='jump'?6:14;
     for(let i=0;i<n;i++){
       const ang=type==='jump'?Math.PI+Math.random()*Math.PI:Math.random()*Math.PI*2;
@@ -139,49 +188,32 @@ export function initNeonRun() {
     obstacles.push({x:W+20,y:groundLineY-h+yOff,w,h,type,color:roll<.5?C.obs1:C.obs2});
   }
 
-  // ── DRAW (unchanged from original — only stars lose per-star shadowBlur) ──
-  function drawBg(){ ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H); }
-  function drawStars(){
-    // Batch: no shadowBlur per star
-    stars.forEach(s=>{
-      const b=.5+.5*Math.sin(s.blink+frame*.02);
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(240,236,255,${.4*b+.1})`; ctx.fill();
-    });
-  }
-  function drawSun(){
-    const sx=W/2,sy=H*.38,sr=75;
-    const g=ctx.createRadialGradient(sx,sy,0,sx,sy,sr*3);
-    g.addColorStop(0,'rgba(255,45,120,.2)'); g.addColorStop(1,'transparent');
-    ctx.fillStyle=g; ctx.fillRect(sx-sr*3,sy-sr*2,sr*6,sr*3);
-    ctx.save(); ctx.beginPath(); ctx.arc(sx,sy,sr,Math.PI,0); ctx.closePath(); ctx.clip();
-    const sg=ctx.createLinearGradient(sx-sr,sy,sx+sr,sy);
-    sg.addColorStop(0,'#ff6baf'); sg.addColorStop(.5,'#ff2d78'); sg.addColorStop(1,'#ff6baf');
-    ctx.fillStyle=sg; ctx.shadowColor='#ff2d78'; ctx.shadowBlur=16; ctx.fill(); ctx.shadowBlur=0;
-    for(let i=0;i<8;i++){ ctx.fillStyle='rgba(4,2,14,.88)'; ctx.fillRect(sx-sr,sy-5-i*7,sr*2,3.5); }
-    ctx.restore();
-  }
-  function drawMountains(){
-    [mtn2,mtn1].forEach((pts,idx)=>{
-      ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath();
-      ctx.fillStyle=idx===0?'rgba(7,4,18,.78)':'rgba(7,4,18,.88)'; ctx.fill();
-      ctx.beginPath(); pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath();
-      ctx.fillStyle=idx===0?C.mtn2:C.mtn; ctx.fill();
-    });
+  // ── DRAW — bg stamped from offscreen, only grid+ground animated ──
+  function drawBg(){
+    if (bgCanvas) ctx.drawImage(bgCanvas, 0, 0, W, H);
+    else { ctx.fillStyle='#04020e'; ctx.fillRect(0,0,W,H); }
   }
   function drawGrid(){
+    if (isMobile) return; // skip grid on mobile
     gridOffsetY=(gridOffsetY+speed*.5)%60;
     const horizon=H*.5;
     for(let x=-6;x<=6;x++){ const bx=W/2+x*72; ctx.beginPath(); ctx.moveTo(bx,horizon); ctx.lineTo(W/2+(bx-W/2)*5,groundLineY+6); ctx.strokeStyle=C.grid2; ctx.lineWidth=.8; ctx.stroke(); }
     for(let i=0;i<10;i++){ const t=(i/10+gridOffsetY/600)%1; const y=horizon+(groundLineY-horizon)*Math.pow(t,1.5); const xoff=(1-t)*W*.5; ctx.beginPath(); ctx.moveTo(xoff,y); ctx.lineTo(W-xoff,y); ctx.strokeStyle=`rgba(255,45,120,${t*.28})`; ctx.lineWidth=.8; ctx.stroke(); }
   }
+  // cached ground gradient — rebuilt on resize via buildStaticBg
+  let groundGrad = null;
+  function buildGroundGrad() {
+    groundGrad = ctx.createLinearGradient(0, groundLineY, 0, H);
+    groundGrad.addColorStop(0, C.groundG); groundGrad.addColorStop(1, 'transparent');
+  }
+
   function drawGround(){
     ctx.beginPath(); ctx.moveTo(0,groundLineY); ctx.lineTo(W,groundLineY);
     ctx.strokeStyle=C.ground; ctx.lineWidth=2;
     if(!isMobile){ ctx.shadowColor=C.ground; ctx.shadowBlur=10; }
     ctx.stroke(); ctx.shadowBlur=0;
-    const gg=ctx.createLinearGradient(0,groundLineY,0,H); gg.addColorStop(0,C.groundG); gg.addColorStop(1,'transparent');
-    ctx.fillStyle=gg; ctx.fillRect(0,groundLineY,W,H-groundLineY);
+    if (!groundGrad) buildGroundGrad();
+    ctx.fillStyle=groundGrad; ctx.fillRect(0,groundLineY,W,H-groundLineY);
   }
   function drawDino(){
     const x=dino.x,y=dino.drawY,w=DINO_W,h=dino.ducking?DUCK_H:DINO_H;
@@ -196,9 +228,12 @@ export function initNeonRun() {
       else { ctx.fillRect(x+4,y+h,4,7); ctx.fillRect(x+14,y+h,-3,7); }
     }
     ctx.shadowBlur=0;
-    const dg=ctx.createRadialGradient(x+w/2,groundLineY,0,x+w/2,groundLineY,28);
-    dg.addColorStop(0,'rgba(0,245,255,.22)'); dg.addColorStop(1,'transparent');
-    ctx.fillStyle=dg; ctx.fillRect(x-8,groundLineY-4,w+16,18);
+    // dino ground shadow — skip on mobile
+    if (!isMobile) {
+      const dg=ctx.createRadialGradient(x+w/2,groundLineY,0,x+w/2,groundLineY,28);
+      dg.addColorStop(0,'rgba(0,245,255,.22)'); dg.addColorStop(1,'transparent');
+      ctx.fillStyle=dg; ctx.fillRect(x-8,groundLineY-4,w+16,18);
+    }
   }
   function drawObstacle(o){
     ctx.save();
@@ -254,17 +289,21 @@ export function initNeonRun() {
   function drawHUD(){
     const fs=Math.max(10,W*0.015); ctx.font=`bold ${fs}px 'Share Tech Mono',monospace`;
     const s=String(score).padStart(5,'0'),hi=String(hiscore).padStart(5,'0');
-    ctx.fillStyle=C.hiscore;ctx.shadowColor=C.hiscore;ctx.shadowBlur=5;ctx.fillText('HI '+hi,W-220,18);ctx.shadowBlur=0;
-    ctx.fillStyle=C.score;ctx.shadowColor=C.score;ctx.shadowBlur=5;ctx.fillText('SCORE '+s,W-110,18);ctx.shadowBlur=0;
+    if (!isMobile) { ctx.shadowColor=C.hiscore; ctx.shadowBlur=5; }
+    ctx.fillStyle=C.hiscore; ctx.fillText('HI '+hi,W-220,18); ctx.shadowBlur=0;
+    if (!isMobile) { ctx.shadowColor=C.score; ctx.shadowBlur=5; }
+    ctx.fillStyle=C.score; ctx.fillText('SCORE '+s,W-110,18); ctx.shadowBlur=0;
     scoreDis.textContent=s;
   }
   function collides(ax,ay,aw,ah,b){const pad=4;return ax+pad<b.x+b.w-pad&&ax+aw-pad>b.x+pad&&ay+pad<b.y+b.h-pad&&ay+ah-pad>b.y+pad;}
 
   let rafId = null;
-  function loop(){
+  function loop(ts = 0){
     rafId=requestAnimationFrame(loop); frame++;
+    if (isMobile && ts - lastTs < MS_PER_FRAME) return;
+    lastTs = ts;
     ctx.clearRect(0,0,W,H);
-    drawBg(); drawStars(); drawSun(); drawMountains(); drawGrid(); drawGround();
+    drawBg(); drawGrid(); drawGround();
     if(state==='running'){
       const wasOnGround=dino.onGround; dino.vy+=.65; dino.y+=dino.vy;
       if(dino.y>=0){dino.y=0;dino.vy=0;if(!wasOnGround)snd_land();dino.onGround=true;}
@@ -276,9 +315,11 @@ export function initNeonRun() {
       const dw=dino.ducking?DINO_W+8:DINO_W,dh=dino.ducking?DUCK_H:DINO_H;
       const dx=dino.x,dy=groundLineY-dh+dino.y;
       for(const o of obstacles){if(collides(dx,dy,dw,dh,o)){state='dead';snd_die();spawnParticles(dx+dw/2,dy+dh/2,'die');overMsg.classList.add('show');break;}}
-      particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=p.decay;}); particles=particles.filter(p=>p.life>0);
+      if (!isMobile) { particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=p.decay;}); particles=particles.filter(p=>p.life>0); }
     }
-    obstacles.forEach(drawObstacle); drawDino(); drawParticles(); drawHUD();
+    obstacles.forEach(drawObstacle); drawDino();
+    if (!isMobile) drawParticles();
+    drawHUD();
   }
 
   window._neonRunStart = function(){ if(rafId)return; window._neonRunReset(); loop(); };
