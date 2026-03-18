@@ -601,6 +601,7 @@ section:hover .sec-glow-line{opacity:.6;transform:scaleX(1)}
   background:var(--bg2);
 }
 #dino-canvas{display:block;width:100%;height:220px}
+#bb-canvas{display:block;width:100%;height:420px;}
 
 .game-msg{
   position:absolute;inset:0;display:flex;flex-direction:column;
@@ -854,7 +855,14 @@ footer{
 .cab-btn:active{transform:scale(.85)}
 .cb-pink{background:var(--pink);color:var(--pink);animation:btnGlow 2s 0s ease-in-out infinite}
 .cb-cyan{background:var(--cyan);color:var(--cyan);animation:btnGlow 2s .8s ease-in-out infinite}
+.cb-violet{background:var(--violet);color:var(--violet);animation:btnGlow 2s 0s ease-in-out infinite}
+.cb-gold{background:var(--gold);color:var(--gold);animation:btnGlow 2s .8s ease-in-out infinite}
 @keyframes btnGlow{0%,100%{box-shadow:0 0 4px currentColor}50%{box-shadow:0 0 12px currentColor,0 0 20px currentColor}}
+
+/* ── BRICK WAVE cabinet preview canvas ── */
+.cab-preview-canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+}
 
 /* coin slot */
 .cab-coin-slot{
