@@ -1651,8 +1651,6 @@ if(window.matchMedia('(pointer:fine)').matches){
         ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
         ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h
       ){
-        b.alive = false;
-        b.flash  = 1;
         const overX = ball.vx > 0 ? (ball.x + ball.r) - b.x : b.x + b.w - (ball.x - ball.r);
         const overY = ball.vy > 0 ? (ball.y + ball.r) - b.y : b.y + b.h - (ball.y - ball.r);
         if(overX < overY) ball.vx *= -1;
@@ -1661,10 +1659,8 @@ if(window.matchMedia('(pointer:fine)').matches){
       }
     }
 
-    // se la pallina esce sotto o tutti i mattoni sono finiti — reset
-    if(ball.y - ball.r > H || bricks.every(b => !b.alive)){
-      init();
-    }
+    // se la pallina esce sotto — reset
+    if(ball.y - ball.r > H){ init(); }
   }
 
   // ── DRAW ──
