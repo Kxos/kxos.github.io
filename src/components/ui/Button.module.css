@@ -1,0 +1,69 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--fm);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.85rem 2rem;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+.btn > span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sweep hover */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%) skewX(-15deg);
+  transition: transform 0.4s var(--ease-out-expo);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+}
+
+.btn:hover::before {
+  transform: translateX(110%) skewX(-15deg);
+}
+
+/* Primary — pink */
+.primary {
+  background: var(--pink);
+  color: #fff;
+  border-color: var(--pink);
+}
+
+.primary::before {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.primary:hover {
+  box-shadow: var(--gp);
+}
+
+/* Secondary — cyan outline */
+.secondary {
+  background: transparent;
+  color: var(--cyan);
+  border-color: rgba(0, 245, 255, 0.4);
+}
+
+.secondary::before {
+  background: rgba(0, 245, 255, 0.08);
+}
+
+.secondary:hover {
+  box-shadow: var(--gc);
+  border-color: var(--cyan);
+}

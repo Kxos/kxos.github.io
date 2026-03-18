@@ -1,0 +1,44 @@
+.wrapper {
+  position: relative;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 220px;
+}
+
+.mobileControls {
+  display: none;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn {
+  font-family: var(--fm);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: transparent;
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.btn:active {
+  border-color: var(--cyan);
+  box-shadow: var(--gc);
+}
+
+@media (max-width: 960px) {
+  .mobileControls {
+    display: flex;
+  }
+
+  .canvas {
+    height: 180px;
+  }
+}

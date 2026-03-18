@@ -1,0 +1,244 @@
+.section {
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Locked state ─────────────────────────────────────── */
+.locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 4rem 0;
+}
+
+.lockHint {
+  font-family: var(--fm);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.unlockBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: var(--fh);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid rgba(255,217,61,.35);
+  padding: 1rem 2.5rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.unlockBtn:hover {
+  box-shadow: 0 0 20px rgba(255,217,61,.3);
+  transform: scale(1.04);
+}
+
+.lockIcon { font-size: 1.1rem; }
+
+/* ── Cabinets ─────────────────────────────────────────── */
+.cabinets {
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.cabinet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 200px;
+}
+
+.cabinetScreen {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  position: relative;
+}
+
+.cabinetPreview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.previewSun {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 30px;
+  border-radius: 30px 30px 0 0;
+  background: linear-gradient(to bottom, rgba(255,45,120,.0), rgba(255,45,120,.5));
+  box-shadow: 0 0 15px rgba(255,45,120,.5);
+  animation: miniSunPulse 3s ease-in-out infinite;
+}
+
+.previewScanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 3px);
+  pointer-events: none;
+}
+
+.cabinetInfo {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gameName {
+  font-family: var(--fh);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+.gameDesc {
+  font-family: var(--fm);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.playBtn {
+  font-family: var(--fm);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid rgba(255,217,61,.35);
+  padding: 0.45rem 1.1rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.playBtn:hover {
+  box-shadow: 0 0 14px rgba(255,217,61,.4);
+}
+
+/* ── Game Panel ───────────────────────────────────────── */
+.gamePanel {
+  margin-top: 2rem;
+  border: 1px solid rgba(180,79,255,.3);
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+
+.gamePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.gamePanelName {
+  font-family: var(--fh);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+.scoreDisplay {
+  font-family: var(--fm);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.scoreDisplay span {
+  color: var(--cyan);
+  font-size: 1.1rem;
+  font-family: var(--fh);
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+.closeBtn {
+  font-family: var(--fm);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text2);
+  background: transparent;
+  border: 1px solid var(--border2);
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.closeBtn:hover {
+  color: var(--pink);
+  border-color: var(--pink);
+}
+
+/* Tende di chiusura */
+.curtainLeft,
+.curtainRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  z-index: 100;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+.curtainLeft {
+  left: 0;
+  transform-origin: left center;
+  background: linear-gradient(to right, var(--bg2) 0%, var(--surface2) 55%, rgba(180,79,255,.25) 85%, rgba(180,79,255,.55) 100%);
+}
+
+.curtainRight {
+  right: 0;
+  transform-origin: right center;
+  background: linear-gradient(to left, var(--bg2) 0%, var(--surface2) 55%, rgba(0,245,255,.25) 85%, rgba(0,245,255,.55) 100%);
+}
+
+.curtainLeft::before,
+.curtainRight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--violet) 20%, var(--pink) 50%, var(--violet) 80%, transparent);
+  box-shadow: 0 0 8px 2px var(--pink), 0 0 18px 4px rgba(255,45,120,.5);
+}
+
+.curtainLeft::before  { right: 0; }
+.curtainRight::before { left: 0; }
+
+.loading {
+  font-family: var(--fm);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-align: center;
+  padding: 3rem;
+}
