@@ -16,7 +16,7 @@
 }
 
 .btn {
-  font-family: var(--fm);
+  font-family: var(--fm), monospace;
   font-size: 0.65rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
