@@ -185,12 +185,10 @@
       ctx.stroke();
     }
 
-    // ── sun parallax via CSS transform ──
-    // Solo movimento orizzontale — il verticale causa il sole a uscire dal pavimento
+    // ── sun: posizione fissa, no parallax ──
     if(sunEl && sunGlowEl){
-      const px = rmx * 14; // ±14px orizzontale, segue il mouse
-      sunEl.style.transform     = `translateX(calc(-50% + ${px}px))`;
-      sunGlowEl.style.transform = `translateX(calc(-50% + ${px*.5}px))`;
+      sunEl.style.transform     = `translateX(-50%)`;
+      sunGlowEl.style.transform = `translateX(-50%)`;
     }
 
     requestAnimationFrame(draw);
@@ -877,6 +875,7 @@ if(window.matchMedia('(pointer:fine)').matches){
 
 
   const LW = 880, LH = 220;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
   function resizeCanvas(){
     const rect = canvas.getBoundingClientRect();
     if(rect.width === 0 || rect.height === 0) return false;
@@ -1150,20 +1149,140 @@ if(window.matchMedia('(pointer:fine)').matches){
   }
 
   function drawObstacle(o){
-    ctx.shadowColor=o.color; ctx.shadowBlur=10; ctx.fillStyle=o.color;
+    ctx.save();
+
     if(o.type==='bird'){
-      ctx.fillRect(o.x,o.y+4,o.w,o.h-4);
-      const wf=Math.sin(frame*.22)*7;
-      ctx.fillRect(o.x+4,o.y+wf,o.w-8,7);
-      ctx.fillRect(o.x+4,o.y-wf,o.w-8,7);
+      const x=o.x, y=o.y, w=o.w, h=o.h;
+      const flap=Math.sin(frame*.22);
+      if(!isMobile){ ctx.shadowColor=C.obs2; ctx.shadowBlur=10; }
+      ctx.fillStyle=C.obs2;
+
+      // corpo
+      ctx.fillRect(x+w*.3, y+4, w*.4, h-2);
+      // testa
+      ctx.fillRect(x+w*.62, y, w*.22, h*.7);
+      // becco/cresta
+      ctx.fillRect(x+w*.84, y+2, w*.18, 3);
+      ctx.fillStyle='#ff2d78';
+      if(!isMobile){ ctx.shadowColor='#ff2d78'; ctx.shadowBlur=5; }
+      ctx.fillRect(x+w*.6, y-4, 4, 5); // cresta
+      if(!isMobile){ ctx.shadowColor=C.obs2; ctx.shadowBlur=10; }
+      ctx.fillStyle=C.obs2;
+      // occhio
+      ctx.fillStyle='#04020e';
+      ctx.fillRect(x+w*.68, y+2, 4, 4);
+      ctx.fillStyle='#ff2d78';
+      ctx.fillRect(x+w*.69, y+3, 2, 2);
+      // ala sx (batte)
+      ctx.fillStyle=C.obs2;
+      const wingY = flap * 7;
+      ctx.fillRect(x,        y+wingY,   w*.32, 4);
+      ctx.fillRect(x+w*.04,  y+wingY-3, w*.22, 4);
+      // ala dx
+      ctx.fillRect(x+w*.68,  y+wingY,   w*.32, 4);
+      ctx.fillRect(x+w*.74,  y+wingY-3, w*.22, 4);
+      // coda
+      ctx.fillRect(x+w*.15, y+5, w*.18, 3);
+      ctx.fillRect(x+w*.1,  y+8, w*.1,  3);
+
+    } else if(o.type==='cactus'){
+      const x=o.x, y=o.y, w=o.w, h=o.h;
+      if(!isMobile){ ctx.shadowColor=C.obs1; ctx.shadowBlur=12; }
+      ctx.fillStyle=C.obs1;
+
+      // tronco centrale
+      ctx.fillRect(x+w*.3, y, w*.4, h);
+      // punta top
+      ctx.fillRect(x+w*.35, y-4, w*.3, 5);
+
+      // braccio sx
+      ctx.fillRect(x, y+h*.22, w*.32, w*.35);       // braccio orizz
+      ctx.fillRect(x, y+h*.1,  w*.32, h*.18);       // fusto sx
+      ctx.fillRect(x+w*.04, y+h*.08, w*.2, 5);      // punta sx
+
+      // braccio dx
+      ctx.fillRect(x+w*.68, y+h*.32, w*.32, w*.35); // braccio orizz
+      ctx.fillRect(x+w*.68, y+h*.2,  w*.32, h*.2);  // fusto dx
+      ctx.fillRect(x+w*.72, y+h*.18, w*.2,  5);     // punta dx
+
+      // spine (piccoli pixel sporgenti) — colore più chiaro
+      ctx.fillStyle='rgba(255,107,175,.9)';
+      for(let i=0;i<4;i++){
+        ctx.fillRect(x+w*.68+1, y+h*.32+i*6, 3, 2); // spine dx
+        ctx.fillRect(x+w*.28-2, y+h*.22+i*5, 3, 2); // spine sx
+        ctx.fillRect(x+w*.68+1, y+h*.32+i*6, 3, 2);
+      }
+
     } else {
-      ctx.fillRect(o.x,o.y,o.w,o.h);
-      if(o.type==='cactus'){
-        ctx.fillRect(o.x-5,o.y+o.h*.28,5,o.h*.28);
-        ctx.fillRect(o.x+o.w,o.y+o.h*.38,5,o.h*.22);
+      // ── tall: TORRE ELETTRICA con scariche ──
+      const x=o.x, y=o.y, w=o.w, h=o.h;
+      const t = frame * .08;
+      const cx2 = x + w/2;
+
+      // ── struttura torre ad alta tensione ──
+      if(!isMobile){ ctx.shadowColor='#ffd93d'; ctx.shadowBlur=14; }
+      ctx.fillStyle='#ffd93d';
+      ctx.fillRect(cx2-3, y,        6, h);
+      ctx.fillRect(x-5,   y,        w+10, 5);
+      ctx.fillRect(x-2,   y+5,      w+4,  3);
+      ctx.fillRect(x-3,   y+h*.45,  w+6,  4);
+      ctx.fillRect(x-5,   y+h-5,    w+10, 5);
+      ctx.fillRect(x-2,   y+h-8,    w+4,  3);
+
+      // gambe diagonali
+      if(!isMobile) ctx.shadowBlur=6;
+      ctx.lineWidth=2.5;
+      ctx.strokeStyle='#ffd93d'; if(!isMobile) ctx.shadowColor='#ffd93d';
+      [[cx2-3,y+5,      x-5,    y+h*.44],
+       [cx2+3,y+5,      x+w+5,  y+h*.44],
+       [cx2-3,y+h*.49,  x-5,    y+h-5],
+       [cx2+3,y+h*.49,  x+w+5,  y+h-5]
+      ].forEach(([x1,y1,x2,y2])=>{
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      });
+
+      // isolatori alle punte della traversa top
+      ctx.fillStyle='#ffd93d';
+      if(!isMobile) ctx.shadowBlur=10;
+      ctx.beginPath(); ctx.arc(x-5,   y+2, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+w+5, y+2, 4.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='#04020e';
+      ctx.beginPath(); ctx.arc(x-5,   y+2, 2,   0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(x+w+5, y+2, 2,   0, Math.PI*2); ctx.fill();
+
+      // ── SCARICHE ELETTRICHE + ALONE (solo desktop) ──
+      if(!isMobile){
+        const bolt=(x1,y1,x2,y2,segs,col,alpha)=>{
+          ctx.save();
+          ctx.strokeStyle=col||'#00f5ff'; ctx.shadowColor=col||'#00f5ff';
+          ctx.shadowBlur=8; ctx.lineWidth=1.2; ctx.globalAlpha=alpha||.85;
+          ctx.beginPath(); ctx.moveTo(x1,y1);
+          const dx=(x2-x1)/segs, dy=(y2-y1)/segs;
+          for(let i=1;i<segs;i++){
+            const j=Math.sin(t*6.7+i*2.9+x1*.02)*7;
+            ctx.lineTo(x1+dx*i+j, y1+dy*i+j*.4);
+          }
+          ctx.lineTo(x2,y2); ctx.stroke(); ctx.restore();
+        };
+        const p1=Math.sin(t*2.3), p2=Math.sin(t*2.3+Math.PI);
+        if(p1>-.2){ bolt(x-5,y+2,cx2,y+2,6,'#00f5ff',.55+p1*.35); }
+        if(p2>-.2){ bolt(x+w+5,y+2,cx2,y+2,6,'#00f5ff',.55+p2*.35); }
+        if(p1>.3){ bolt(x-5,y+2,cx2-3,y+h*.44,8,'#7bf5ff',.35); }
+        if(p2>.3){ bolt(x+w+5,y+2,cx2+3,y+h*.44,8,'#7bf5ff',.35); }
+        bolt(cx2,y+7,cx2,y+h*.43,9,'#ffd93d',.55);
+        bolt(cx2,y+h*.49,cx2,y+h-7,9,'#ffd93d',.55);
+        // alone pulsante sugli isolatori
+        const gr=5+Math.abs(Math.sin(t*3.1))*4;
+        ctx.save();
+        ctx.shadowColor='#00f5ff'; ctx.shadowBlur=22;
+        ctx.fillStyle=`rgba(0,245,255,${.25+Math.abs(Math.sin(t*3.1))*.45})`;
+        ctx.beginPath(); ctx.arc(x-5,y+2,gr,0,Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x+w+5,y+2,gr,0,Math.PI*2); ctx.fill();
+        ctx.restore();
       }
     }
-    ctx.shadowBlur=0;
+
+    ctx.restore();
   }
 
   function drawParticles(){
