@@ -46,6 +46,7 @@ export function drawBg(ctx, W, H) {
 
 /**
  * Disegna le stelle con effetto twinkle.
+ * @param {CanvasRenderingContext2D} ctx
  * @param {{ x, y, r, blink }[]} stars
  * @param {number} frame
  */
@@ -63,6 +64,9 @@ export function drawStars(ctx, stars, frame) {
 
 /**
  * Disegna il sole synthwave con strisce orizzontali.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} W - larghezza logica del canvas
+ * @param {number} H - altezza logica del canvas
  */
 export function drawSun(ctx, W, H) {
   const sx = W / 2
@@ -128,6 +132,9 @@ export function drawMountains(ctx, mountains) {
 
 /**
  * Disegna la griglia prospettica synthwave animata.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} W - larghezza logica del canvas
+ * @param {number} H - altezza logica del canvas
  * @param {number} gridOffsetY - offset verticale per l'animazione scroll
  * @param {number} groundLineY
  */
