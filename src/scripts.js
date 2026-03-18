@@ -617,7 +617,11 @@ if(window.matchMedia('(pointer:fine)').matches){
     }catch(e){}
   }
 
+  let _ejecting = false;
   function closePanel(){
+    if(_ejecting) return;          // guard — ignora click multipli
+    _ejecting = true;
+
     const btn     = document.getElementById('agpClose');
     const flash   = document.getElementById('ejectFlash');
 
@@ -659,6 +663,7 @@ if(window.matchMedia('(pointer:fine)').matches){
     arcadePanel.classList.add('closing');
     setTimeout(()=>{
       activeGameId = null;
+      _ejecting = false;           // guard reset — ora si può riaprire
       arcadePanel.classList.remove('visible');
       arcadePanel.classList.remove('closing');
       document.querySelectorAll('.game-inner').forEach(g=>g.classList.remove('active'));
