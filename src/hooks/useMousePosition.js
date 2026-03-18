@@ -3,7 +3,7 @@
  * Restituisce { x, y } in pixel e { rx, ry } normalizzati (-1..1).
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 /**
  * @param {React.RefObject<HTMLElement>} [targetRef]

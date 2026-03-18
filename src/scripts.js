@@ -266,7 +266,7 @@
 
       // phase 3: rising synthwave arpeggio (1.2–2.0s) — access granted
       [220,277,330,440,554,659,880,1108].forEach((f,i)=>{
-        const o=ctx.createOscillator(), g=ctx.createGain(), rev=ctx.createConvolver();
+        const o=ctx.createOscillator(), g=ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.type='sawtooth'; o.frequency.value=f;
         const t=ctx.currentTime+1.2+i*.1;
@@ -840,7 +840,7 @@ if(window.matchMedia('(pointer:fine)').matches){
     }catch(e){}
   }
 
-  function snd_milestone(score){
+  function snd_milestone(){
     try{
       const ctx = getACtx(), out = getMaster();
       // quick ascending arpeggio — every 100 pts
@@ -861,7 +861,6 @@ if(window.matchMedia('(pointer:fine)').matches){
   }
 
   // footstep tick — subtle metronome while running
-  let _lastStep = 0;
   function snd_step(fr, spd){
     try{
       const interval = Math.max(6, Math.round(12 - spd));
@@ -1350,7 +1349,7 @@ if(window.matchMedia('(pointer:fine)').matches){
         const prev = score;
         score++;
         hiscore=Math.max(hiscore,score);
-        if(score % 100 === 0 && score !== prev) snd_milestone(score);
+        if(score % 100 === 0 && score !== prev) snd_milestone();
       }
       speed = 4 + Math.floor(score/80)*.6;
 

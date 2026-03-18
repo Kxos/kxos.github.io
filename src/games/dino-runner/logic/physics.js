@@ -9,7 +9,7 @@ import { GRAVITY, JUMP_FORCE, DINO_W, DINO_H, DUCK_H } from '../constants.js'
  * @param {object} dino   - stato mutabile del dinosauro
  * @param {number} groundLineY - coordinata Y del terreno
  */
-export function updateDino(dino, groundLineY) {
+export function updateDino(dino) {
   dino.vy += GRAVITY
   dino.y  += dino.vy
 

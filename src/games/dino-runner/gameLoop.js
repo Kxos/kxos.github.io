@@ -4,7 +4,7 @@
  * Viene chiamato da DinoRunner.jsx che possiede il ref del canvas.
  */
 
-import { LW, LH, GROUND_Y, COLORS } from './constants.js'
+import { LW, LH, GROUND_Y } from './constants.js'
 import { createDino, updateDino, collides, jump, setDuck } from './logic/physics.js'
 import { spawnObstacle, nextSpawnInterval, updateObstacles } from './logic/obstacles.js'
 import { spawnParticles, updateParticles } from './logic/particles.js'
@@ -122,7 +122,7 @@ export function startGameLoop(canvas, { onScore, onGameOver } = {}) {
     if (state === 'running') {
       // Fisica dino
       const wasOnGround = dino.onGround
-      updateDino(dino, groundLineY)
+      updateDino(dino)
       if (!wasOnGround && dino.onGround) {
         playLand()
         particles = [...particles, ...spawnParticles(dino.x + 13, groundLineY, 'land')]

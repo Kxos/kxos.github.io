@@ -3,7 +3,7 @@
  * Tutti i gradient statici vengono cachati per non ricrearli ogni frame.
  */
 
-import { LW, LH, COLORS } from '../constants.js'
+import { COLORS } from '../constants.js'
 
 const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768
 
