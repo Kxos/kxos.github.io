@@ -9,6 +9,7 @@ export function initBrickPreview() {
   const COLS = 6, ROWS = 3, BGAP = 2;
   const BRICK_TOP = 0.10, BRICK_H = 0.08;
   const PADDLE_H = 0.045, PADDLE_W = 0.36, PADDLE_Y = 0.88, BALL_R = 0.032;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
 
   let W, H, bricks = [], ball = {}, paddle = {}, visible = false;
 
@@ -95,7 +96,8 @@ export function initBrickPreview() {
     const byColor = {};
     bricks.forEach(b => { (byColor[b.col] = byColor[b.col] || []).push(b); });
     Object.entries(byColor).forEach(([col, list]) => {
-      cx.shadowColor = col; cx.shadowBlur = 6; cx.fillStyle = col; cx.globalAlpha = 0.85;
+      if (!isMobile) { cx.shadowColor = col; cx.shadowBlur = 6; }
+      cx.fillStyle = col; cx.globalAlpha = 0.85;
       list.forEach(b => { cx.beginPath(); cx.roundRect(b.x, b.y, b.w, b.h, 2); cx.fill(); });
       // highlights
       cx.shadowBlur = 0; cx.globalAlpha = 0.25; cx.fillStyle = '#fff';
@@ -106,7 +108,7 @@ export function initBrickPreview() {
 
     // paddle
     cx.save();
-    cx.shadowColor = CYAN; cx.shadowBlur = 12;
+    if (!isMobile) { cx.shadowColor = CYAN; cx.shadowBlur = 12; }
     const pg = cx.createLinearGradient(paddle.x, 0, paddle.x + paddle.w, 0);
     pg.addColorStop(0, '#7bf5ff'); pg.addColorStop(.5, CYAN); pg.addColorStop(1, '#7bf5ff');
     cx.fillStyle = pg;
@@ -123,7 +125,7 @@ export function initBrickPreview() {
 
     // ball
     cx.save();
-    cx.shadowColor = 'rgba(0,245,255,.9)'; cx.shadowBlur = 10;
+    if (!isMobile) { cx.shadowColor = 'rgba(0,245,255,.9)'; cx.shadowBlur = 10; }
     const bg = cx.createRadialGradient(ball.x - ball.r * .3, ball.y - ball.r * .3, 0, ball.x, ball.y, ball.r);
     bg.addColorStop(0, '#fff'); bg.addColorStop(.5, '#7bf5ff'); bg.addColorStop(1, CYAN);
     cx.fillStyle = bg; cx.beginPath(); cx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); cx.fill();

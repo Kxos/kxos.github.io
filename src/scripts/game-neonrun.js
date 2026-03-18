@@ -177,13 +177,16 @@ export function initNeonRun() {
   }
   function drawGround(){
     ctx.beginPath(); ctx.moveTo(0,groundLineY); ctx.lineTo(W,groundLineY);
-    ctx.strokeStyle=C.ground; ctx.lineWidth=2; ctx.shadowColor=C.ground; ctx.shadowBlur=10; ctx.stroke(); ctx.shadowBlur=0;
+    ctx.strokeStyle=C.ground; ctx.lineWidth=2;
+    if(!isMobile){ ctx.shadowColor=C.ground; ctx.shadowBlur=10; }
+    ctx.stroke(); ctx.shadowBlur=0;
     const gg=ctx.createLinearGradient(0,groundLineY,0,H); gg.addColorStop(0,C.groundG); gg.addColorStop(1,'transparent');
     ctx.fillStyle=gg; ctx.fillRect(0,groundLineY,W,H-groundLineY);
   }
   function drawDino(){
     const x=dino.x,y=dino.drawY,w=DINO_W,h=dino.ducking?DUCK_H:DINO_H;
-    ctx.shadowColor=C.dino; ctx.shadowBlur=10; ctx.fillStyle=C.dino;
+    if(!isMobile){ ctx.shadowColor=C.dino; ctx.shadowBlur=10; }
+    ctx.fillStyle=C.dino;
     if(dino.ducking){ ctx.fillRect(x,y,w+8,h); ctx.fillStyle='#04020e'; ctx.fillRect(x+w+2,y+4,5,5); }
     else {
       ctx.fillRect(x,y+8,w,h-8); ctx.fillRect(x+6,y,w,13);

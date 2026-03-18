@@ -7,22 +7,9 @@ export function initUI() {
     if (el) el.href = m;
   });
 
-  // ── NAV ──
+  // ── NAV scroll stuck ──
   const nav = document.getElementById('nav');
   window.addEventListener('scroll', () => nav.classList.toggle('stuck', scrollY > 60), { passive: true });
-
-  const hamburger  = document.getElementById('hamburger');
-  const mobOverlay = document.getElementById('mob-overlay');
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    mobOverlay.classList.toggle('open');
-  });
-  mobOverlay.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      hamburger.classList.remove('open');
-      mobOverlay.classList.remove('open');
-    });
-  });
 
   // ── CURSOR (desktop only) ──
   if (window.matchMedia('(pointer:fine)').matches) {

@@ -48,6 +48,7 @@ export function initBrickBreaker() {
   let W, H, DPR = 1;
   let state = 'idle', score = 0, hiscore = 0, lives = 3, level = 1;
   let frame = 0, rafId = null, hitCount = 0;
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
   let paddle = {}, ball = {}, bricks = [], particles = [], stars = [];
 
   const BRICK_ROWS = 7, BRICK_COLS = 10, BRICK_PAD = 4, BRICK_TOP = 0.12;
@@ -152,28 +153,51 @@ export function initBrickBreaker() {
   function showCursor() { if (curDot) curDot.style.opacity = ''; if (curRing) curRing.style.opacity = ''; }
   canvas.addEventListener('mouseenter', hideCursor);
   canvas.addEventListener('mouseleave', () => { mouseX = -1; showCursor(); });
-  canvas.addEventListener('mousemove',  e => { const r = canvas.getBoundingClientRect(); mouseX = e.clientX - r.left; });
-  canvas.addEventListener('touchstart', e => { hideCursor(); e.preventDefault(); const r = canvas.getBoundingClientRect(); mouseX = e.touches[0].clientX - r.left; if (state==='idle') launch(); else if (state==='dead') reset(); else if (state==='win') nextLevel(); }, { passive: false });
-  canvas.addEventListener('touchmove',  e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); mouseX = e.touches[0].clientX - r.left; }, { passive: false });
-  canvas.addEventListener('touchend',   () => showCursor(), { passive: true });
+  canvas.addEventListener('mousemove',  e => {
+    // mouse only moves paddle if no button is held
+    if (mobileDir === 0) {
+      const r = canvas.getBoundingClientRect();
+      mouseX = e.clientX - r.left;
+    }
+  });
 
-  // Mobile buttons
-  let mobileDir = 0, mobileRaf = null;
-  function startMove(dir) {
-    mobileDir = dir; if (mobileRaf) return;
-    (function step() {
-      paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x + mobileDir * paddle.w * .12));
-      if (ball.stuck) ball.x = paddle.x + paddle.w / 2;
-      mobileRaf = requestAnimationFrame(step);
-    })();
-  }
-  function stopMove() { mobileDir = 0; if (mobileRaf) { cancelAnimationFrame(mobileRaf); mobileRaf = null; } }
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (mobileDir === 0) { // direct finger drag only when no button held
+      const r = canvas.getBoundingClientRect();
+      mouseX = e.touches[0].clientX - r.left;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchstart', e => {
+    if (e.target !== canvas) return;
+    e.preventDefault();
+    hideCursor();
+    const r = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - r.left;
+    if (state === 'idle') {
+      launch();
+    } else if (state === 'dead') {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      resize(); reset(); loop();
+    } else if (state === 'win') {
+      nextLevel();
+      if (!rafId) loop();
+    }
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => showCursor(), { passive: true });
+
+  // Mobile buttons — set direction flag only, updatePaddle handles movement each frame
+  let mobileDir = 0;
+  function startMove(dir) { mobileDir = dir; mouseX = -1; } // clear mouseX so buttons win
+  function stopMove()      { mobileDir = 0; }
 
   [btnLeft, btnRight].forEach((btn, side) => {
     if (!btn) return;
     const dir = side === 0 ? -1 : 1;
-    btn.addEventListener('touchstart', e => { e.preventDefault(); startMove(dir); }, { passive: false });
-    btn.addEventListener('touchend',   e => { e.preventDefault(); stopMove(); }, { passive: false });
+    btn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); startMove(dir); }, { passive: false });
+    btn.addEventListener('touchend',   e => { e.preventDefault(); e.stopPropagation(); stopMove(); }, { passive: false });
     btn.addEventListener('mousedown',  () => startMove(dir));
     btn.addEventListener('mouseup',    stopMove);
     btn.addEventListener('mouseleave', stopMove);
@@ -183,7 +207,15 @@ export function initBrickBreaker() {
     if (!canvas.closest('.game-inner')?.classList.contains('active')) return;
     if (e.code === 'Space' || e.key === ' ') {
       e.preventDefault();
-      if (state === 'idle') launch(); else if (state === 'dead') reset(); else if (state === 'win') nextLevel();
+      if (state === 'idle') {
+        launch();
+      } else if (state === 'dead') {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        resize(); reset(); loop();
+      } else if (state === 'win') {
+        nextLevel();
+        if (!rafId) loop();
+      }
     }
   });
 
@@ -211,7 +243,8 @@ export function initBrickBreaker() {
     // sun glow
     ctx.fillStyle = sunGlowGrad; ctx.beginPath(); ctx.arc(sunSx, sunSy, sunSr * 2, 0, Math.PI * 2); ctx.fill();
     // sun body
-    ctx.fillStyle = sunBodyGrad; ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 22;
+    ctx.fillStyle = sunBodyGrad;
+    if (!isMobile) { ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 22; }
     ctx.beginPath(); ctx.arc(sunSx, sunSy, sunSr, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
     // sun stripes clipped
     ctx.save(); ctx.beginPath(); ctx.arc(sunSx, sunSy, sunSr, 0, Math.PI * 2); ctx.clip();
@@ -237,9 +270,10 @@ export function initBrickBreaker() {
       (byColor[key] = byColor[key] || []).push(b);
     });
     Object.entries(byColor).forEach(([, list]) => {
-      const b0 = list[0], flashing = b0.flashTimer > 0;
-      ctx.shadowColor = b0.col.shadow; ctx.shadowBlur = 8;
+      const b0 = list[0];
+      if (!isMobile) { ctx.shadowColor = b0.col.shadow; ctx.shadowBlur = 8; }
       list.forEach(b => {
+        const flashing = b.flashTimer > 0;
         const alpha = flashing ? .4 + .6 * Math.sin(b.flashTimer * Math.PI) : 1;
         ctx.globalAlpha = alpha;
         ctx.fillStyle = b._grad || b.col.fill;
@@ -260,7 +294,8 @@ export function initBrickBreaker() {
     ctx.fillStyle = grd; ctx.fillRect(x, y + h, w, 6);
     const pg = ctx.createLinearGradient(x, y, x + w, y + h);
     pg.addColorStop(0, '#7bf5ff'); pg.addColorStop(.5, '#00f5ff'); pg.addColorStop(1, '#7bf5ff');
-    ctx.shadowColor = C.paddle; ctx.shadowBlur = 16; ctx.fillStyle = pg;
+    if (!isMobile) { ctx.shadowColor = C.paddle; ctx.shadowBlur = 16; }
+    ctx.fillStyle = pg;
     ctx.beginPath(); ctx.roundRect(x, y, w, h, h / 2); ctx.fill(); ctx.shadowBlur = 0;
   }
 
@@ -271,7 +306,7 @@ export function initBrickBreaker() {
     });
     const bg = ctx.createRadialGradient(ball.x - ball.r * .3, ball.y - ball.r * .3, 0, ball.x, ball.y, ball.r);
     bg.addColorStop(0, '#fff'); bg.addColorStop(.5, '#7bf5ff'); bg.addColorStop(1, '#00f5ff');
-    ctx.shadowColor = C.ballGlow; ctx.shadowBlur = 20;
+    if (!isMobile) { ctx.shadowColor = C.ballGlow; ctx.shadowBlur = 20; }
     ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
   }
@@ -286,7 +321,8 @@ export function initBrickBreaker() {
 
   function drawHeart(cx, cy, size, alpha) {
     const s = size * .5;
-    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = '#ff2d78'; ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 10;
+    ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = '#ff2d78';
+    if (!isMobile) { ctx.shadowColor = '#ff2d78'; ctx.shadowBlur = 10; }
     ctx.beginPath();
     ctx.moveTo(cx, cy + s * .35);
     ctx.bezierCurveTo(cx, cy - s*.1, cx - s, cy - s*.6, cx - s, cy - s*.15);
@@ -302,14 +338,15 @@ export function initBrickBreaker() {
   function drawHUD() {
     const fs = Math.max(9, W * .013);
     ctx.font = `bold ${fs}px 'Share Tech Mono',monospace`;
-    ctx.fillStyle = C.hiscore; ctx.shadowColor = C.hiscore; ctx.shadowBlur = 5;
+    const sb = isMobile ? 0 : 5;
+    ctx.fillStyle = C.hiscore; ctx.shadowColor = C.hiscore; ctx.shadowBlur = sb;
     ctx.fillText('HI ' + String(hiscore).padStart(5,'0'), W - 200, H * .065); ctx.shadowBlur = 0;
-    ctx.fillStyle = C.score; ctx.shadowColor = C.score; ctx.shadowBlur = 5;
+    ctx.fillStyle = C.score; ctx.shadowColor = C.score; ctx.shadowBlur = sb;
     ctx.fillText('SCORE ' + String(score).padStart(5,'0'), W - 100, H * .065); ctx.shadowBlur = 0;
     if (scoreDis) scoreDis.textContent = String(score).padStart(5,'0');
     const hs = Math.max(10, W * .022), hy = H * .055, hg = hs * 1.5;
     for (let i = 0; i < 3; i++) drawHeart(12 + hs * .5 + i * hg, hy, hs, i < lives ? 1 : .18);
-    ctx.fillStyle = 'rgba(180,79,255,.9)'; ctx.shadowColor = '#b44fff'; ctx.shadowBlur = 6;
+    ctx.fillStyle = 'rgba(180,79,255,.9)'; ctx.shadowColor = '#b44fff'; ctx.shadowBlur = isMobile ? 0 : 6;
     ctx.fillText('LV ' + level, W / 2 - 14, H * .065); ctx.shadowBlur = 0;
   }
 
@@ -322,7 +359,12 @@ export function initBrickBreaker() {
   }
 
   function updatePaddle() {
-    if (mouseX >= 0) paddle.x = mouseX - paddle.w / 2;
+    if (mobileDir !== 0) {
+      // buttons have priority — move by percentage of paddle width per frame
+      paddle.x += mobileDir * paddle.w * .12;
+    } else if (mouseX >= 0) {
+      paddle.x = mouseX - paddle.w / 2;
+    }
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
     if (ball.stuck) { ball.x = paddle.x + paddle.w / 2; ball.y = paddle.y - ball.r - 2; }
   }
