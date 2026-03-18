@@ -7,7 +7,7 @@ export default defineConfig({
   // GitHub Pages serve dalla root del repo o da /docs.
   // Se il repo si chiama "vito-iannone-portfolio", usa quel base.
   // Se è il repo user.github.io, usa '/'.
-  base: '/vito-iannone-portfolio/',
+  base: '/',
   build: {
     outDir: 'dist',
     sourcemap: false,
