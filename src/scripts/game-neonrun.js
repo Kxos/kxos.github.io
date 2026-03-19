@@ -4,7 +4,8 @@ export function initNeonRun() {
   const ctx     = canvas.getContext('2d');
   const startMsg= document.getElementById('game-start-msg');
   const overMsg = document.getElementById('game-over-msg');
-  const scoreDis= document.getElementById('score-display');
+  const scoreDis    = document.getElementById('score-display');
+  const hiscoreDis  = document.getElementById('nr-hiscore-display');
   const btnJump = document.getElementById('btn-jump');
   const btnDuck = document.getElementById('btn-duck');
 
@@ -289,11 +290,8 @@ export function initNeonRun() {
   function drawHUD(){
     const fs=Math.max(10,W*0.015); ctx.font=`bold ${fs}px 'Share Tech Mono',monospace`;
     const s=String(score).padStart(5,'0'),hi=String(hiscore).padStart(5,'0');
-    if (!isMobile) { ctx.shadowColor=C.hiscore; ctx.shadowBlur=5; }
-    ctx.fillStyle=C.hiscore; ctx.fillText('HI '+hi,W-220,18); ctx.shadowBlur=0;
-    if (!isMobile) { ctx.shadowColor=C.score; ctx.shadowBlur=5; }
-    ctx.fillStyle=C.score; ctx.fillText('SCORE '+s,W-110,18); ctx.shadowBlur=0;
     scoreDis.textContent=s;
+    if(hiscoreDis) hiscoreDis.textContent=hi;
   }
   function collides(ax,ay,aw,ah,b){const pad=4;return ax+pad<b.x+b.w-pad&&ax+aw-pad>b.x+pad&&ay+pad<b.y+b.h-pad&&ay+ah-pad>b.y+pad;}
 

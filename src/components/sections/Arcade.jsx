@@ -185,9 +185,15 @@ export default function Arcade() {
                   <div className="game-title-wrap">
                     <span className="game-label">Press <kbd style={{border:'1px solid var(--border2)',padding:'.1rem .4rem',fontFamily:'var(--fm)',fontSize:'.55rem',color:'var(--cyan)'}}>SPACE</kbd> or tap to start</span>
                   </div>
-                  <div className="game-score-wrap">
-                    <span className="game-score-label">Score</span>
-                    <span className="game-score-val" id="score-display">00000</span>
+                  <div className="bb-hud-wrap">
+                    <div className="bb-hud-item">
+                      <span className="game-score-label">Hi-Score</span>
+                      <span className="game-score-val bb-hiscore-val" id="nr-hiscore-display">00000</span>
+                    </div>
+                    <div className="bb-hud-item">
+                      <span className="game-score-label">Score</span>
+                      <span className="game-score-val" id="score-display">00000</span>
+                    </div>
                   </div>
                 </div>
                 <div className="game-canvas-wrap">
