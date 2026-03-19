@@ -1449,3 +1449,126 @@ footer{
   .about-cards{grid-template-columns:1fr 1fr}
   section{padding:4rem 1.2rem}
 }
+
+/* ═══════════════════════════════════════════
+   MOBILE FULLSCREEN GAME
+   .mobile-fullscreen: panel occupa tutto lo schermo
+   game-fullscreen-active: spegne rendering non-gioco
+═══════════════════════════════════════════ */
+
+/* Congela tutti i canvas del portfolio mentre il gioco è aperto */
+body.game-fullscreen-active canvas:not(#dino-canvas):not(#bb-canvas) {
+  visibility: hidden;
+}
+body.game-fullscreen-active .section-canvas,
+body.game-fullscreen-active #hero-canvas,
+body.game-fullscreen-active .cab-preview-canvas {
+  visibility: hidden;
+}
+
+/* Panel in fullscreen mobile */
+.arcade-game-panel.mobile-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9000 !important;
+  margin: 0 !important;
+  transform: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #04020e !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header compatto in fullscreen */
+.arcade-game-panel.mobile-fullscreen .agp-header {
+  flex-shrink: 0;
+  padding: .5rem 1rem;
+  background: rgba(4,2,14,.95);
+  border-bottom: 1px solid rgba(180,79,255,.3);
+}
+
+/* Bottone EJECT più grande e touch-friendly in fullscreen */
+.arcade-game-panel.mobile-fullscreen .agp-close {
+  padding: .5rem 1.2rem;
+  font-size: .75rem;
+  color: var(--pink);
+  border-color: rgba(255,45,120,.5);
+  min-height: 44px;
+  min-width: 80px;
+}
+
+/* Game inner occupa tutto lo spazio rimanente */
+.arcade-game-panel.mobile-fullscreen .game-inner {
+  flex: 1;
+  display: none;
+  flex-direction: column;
+  padding: .5rem;
+  overflow: hidden;
+}
+.arcade-game-panel.mobile-fullscreen .game-inner.active {
+  display: flex;
+}
+
+/* Header score compatto */
+.arcade-game-panel.mobile-fullscreen .game-header {
+  flex-shrink: 0;
+  margin-bottom: .4rem;
+}
+
+/* Canvas riempie tutto lo spazio disponibile */
+.arcade-game-panel.mobile-fullscreen .game-canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.arcade-game-panel.mobile-fullscreen #dino-canvas,
+.arcade-game-panel.mobile-fullscreen #bb-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Bottoni mobile nella fullscreen — più grandi */
+.arcade-game-panel.mobile-fullscreen .game-mobile-btns {
+  display: flex;
+  flex-shrink: 0;
+  gap: .8rem;
+  padding: .5rem 0 .3rem;
+  justify-content: center;
+}
+.arcade-game-panel.mobile-fullscreen .gmb {
+  flex: 1;
+  max-width: 160px;
+  min-height: 52px;
+  font-size: .75rem;
+  padding: .6rem 1rem;
+}
+
+/* Score val più piccolo in fullscreen header */
+.arcade-game-panel.mobile-fullscreen .game-score-val {
+  font-size: 1rem;
+}
+
+/* Hint e header score inline in fullscreen */
+.arcade-game-panel.mobile-fullscreen .game-hint { display: none; }
+.arcade-game-panel.mobile-fullscreen .game-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Nasconde curtain in fullscreen mobile (non serve) */
+.arcade-game-panel.mobile-fullscreen .curtain-left,
+.arcade-game-panel.mobile-fullscreen .curtain-right {
+  display: none;
+}
+
+/* Fallback per browser senza Fullscreen API — usa comunque fixed */
+@supports not (selector(:fullscreen)) {
+  .arcade-game-panel.mobile-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+  }
+}

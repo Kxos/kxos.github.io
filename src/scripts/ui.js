@@ -141,7 +141,7 @@ export function initUI() {
     (function draw() {
       if (!canvas.isConnected) return;
       requestAnimationFrame(draw);
-      if (!visible) return; // skip render if off-screen
+      if (!visible || document.body.classList.contains('game-fullscreen-active')) return;
       ctx.clearRect(0, 0, W, H);
       f++;
 

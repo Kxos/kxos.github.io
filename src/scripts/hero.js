@@ -65,6 +65,11 @@ export function initHero() {
   let auraX = -1, auraY = -1, auraGrad = null;
 
   function draw() {
+    // skip rendering when a game is fullscreen (saves CPU for the game)
+    if (document.body.classList.contains('game-fullscreen-active')) {
+      requestAnimationFrame(draw);
+      return;
+    }
     ctx.clearRect(0, 0, W, H);
     frame++;
 

@@ -117,6 +117,8 @@ export function initArcadeLogic() {
   const agpClose    = document.getElementById('agpClose');
   const agpName     = document.getElementById('agpName');
 
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+
   function playCoin() {
     oneShot([
       { oType:'sine',     freq:1400, freqEnd:900,  dur:.25, gain:.35, t:0   },
@@ -148,6 +150,31 @@ export function initArcadeLogic() {
 
   let activeGameId = null;
 
+  // ── MOBILE FULLSCREEN HELPERS ──
+  let _enteredFullscreen = false;
+  function enterFullscreen(el) {
+    const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (fn) { _enteredFullscreen = true; fn.call(el).catch(() => { _enteredFullscreen = false; }); }
+    try { screen.orientation?.lock('landscape').catch(() => {}); } catch(e) {}
+  }
+  function exitFullscreen() {
+    _enteredFullscreen = false;
+    const fn = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fn) fn.call(document).catch(() => {});
+    try { screen.orientation?.unlock(); } catch(e) {}
+  }
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  }
+
+  // Pause all non-game rAF loops when fullscreen game is active
+  function freezePortfolio() {
+    document.body.classList.add('game-fullscreen-active');
+  }
+  function unfreezePortfolio() {
+    document.body.classList.remove('game-fullscreen-active');
+  }
+
   function openGame(gameId, gameName) {
     activeGameId = gameId;
     coinOverlay.classList.add('active');
@@ -164,16 +191,34 @@ export function initArcadeLogic() {
 
       if (window._neonRunStop)  window._neonRunStop();
       if (window._brickStop)    window._brickStop();
-      if (gameId === 'neonrun'       && window._neonRunStart) window._neonRunStart();
-      if (gameId === 'brickbreaker'  && window._brickStart)   window._brickStart();
 
-      arcadePanel.classList.add('visible');
-      playBoot();
-      setTimeout(() => {
-        arcadePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        if (window._neonRunResize) window._neonRunResize();
-        requestAnimationFrame(() => { if (window._brickResize) window._brickResize(); });
-      }, 200);
+      if (isMobile) {
+        // Mobile: fullscreen mode — panel fixed over entire screen
+        freezePortfolio();
+        arcadePanel.classList.add('visible', 'mobile-fullscreen');
+        enterFullscreen(arcadePanel);
+        playBoot();
+        // Resize after fullscreen paint
+        setTimeout(() => {
+          if (window._neonRunResize) window._neonRunResize();
+          if (window._brickResize)   window._brickResize();
+          if (gameId === 'neonrun'      && window._neonRunStart) window._neonRunStart();
+          if (gameId === 'brickbreaker' && window._brickStart)   window._brickStart();
+        }, 300);
+      } else {
+        // Desktop: mostra il panel PRIMA, poi avvia il gioco dopo che il canvas è visibile
+        arcadePanel.classList.add('visible');
+        playBoot();
+        setTimeout(() => {
+          arcadePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (window._neonRunResize) window._neonRunResize();
+          requestAnimationFrame(() => {
+            if (window._brickResize) window._brickResize();
+            if (gameId === 'neonrun'      && window._neonRunStart) window._neonRunStart();
+            if (gameId === 'brickbreaker' && window._brickStart)   window._brickStart();
+          });
+        }, 200);
+      }
     }, 1300);
   }
 
@@ -181,11 +226,28 @@ export function initArcadeLogic() {
   function closePanel() {
     if (_ejecting) return;
     _ejecting = true;
+
+    playEject();
+    if (window._neonRunStop) window._neonRunStop();
+    if (window._brickStop)   window._brickStop();
+
+    if (isMobile) {
+      if (isFullscreen()) exitFullscreen();
+      unfreezePortfolio();
+      arcadePanel.classList.remove('visible', 'mobile-fullscreen', 'closing');
+      activeGameId = null; _ejecting = false;
+      document.querySelectorAll('.game-inner').forEach(g => g.classList.remove('active'));
+      return;
+    }
+
+    // Desktop: curtain animation
     const flash = document.getElementById('ejectFlash');
     agpClose.classList.add('ejecting');
     setTimeout(() => agpClose.classList.remove('ejecting'), 550);
-    if (flash) { flash.classList.remove('active'); void flash.offsetWidth; flash.classList.add('active'); setTimeout(() => flash.classList.remove('active'), 600); }
-
+    if (flash) {
+      flash.classList.remove('active'); void flash.offsetWidth;
+      flash.classList.add('active'); setTimeout(() => flash.classList.remove('active'), 600);
+    }
     const r = agpClose.getBoundingClientRect();
     const coin = document.createElement('div');
     coin.className = 'coin-eject'; coin.textContent = '¢';
@@ -195,10 +257,6 @@ export function initArcadeLogic() {
     void coin.offsetWidth; coin.classList.add('flying');
     setTimeout(() => coin.remove(), 750);
 
-    playEject();
-    if (window._neonRunStop) window._neonRunStop();
-    if (window._brickStop)   window._brickStop();
-
     arcadePanel.classList.add('closing');
     setTimeout(() => {
       activeGameId = null; _ejecting = false;
@@ -207,11 +265,21 @@ export function initArcadeLogic() {
     }, 560);
   }
 
+  // Handle hardware back button / OS fullscreen exit — solo se eravamo entrati noi nel fullscreen
+  function onFullscreenChange() {
+    if (!isFullscreen() && _enteredFullscreen && activeGameId) {
+      _enteredFullscreen = false;
+      closePanel();
+    }
+  }
+  document.addEventListener('fullscreenchange',      onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
   agpClose.addEventListener('click', closePanel);
   coinOverlay.addEventListener('click', e => { if (e.target === coinOverlay) coinOverlay.classList.remove('active'); });
 
   cabinets.forEach(cab => {
-    cab.addEventListener('click', async () => {
+    cab.addEventListener('click', () => {
       const gameId   = cab.dataset.game;
       const gameName = cab.querySelector('.cab-title').textContent;
       if (activeGameId === gameId) {
@@ -221,8 +289,6 @@ export function initArcadeLogic() {
         setTimeout(() => cab.classList.remove('busy'), 600);
         return;
       }
-      // Lazy load games on first play
-      if (window._lazyLoadGames) await window._lazyLoadGames();
       openGame(gameId, gameName);
     });
   });

@@ -1,23 +1,14 @@
 import { initHero }          from './scripts/hero.js';
 import { initUI }            from './scripts/ui.js';
 import { initArcadeUnlock, initArcadeLogic } from './scripts/arcade.js';
+import { initNeonRun }       from './scripts/game-neonrun.js';
 import { initBrickPreview }  from './scripts/game-brickpreview.js';
+import { initBrickBreaker }  from './scripts/game-brickbreaker.js';
 
 initHero();
 initUI();
 initArcadeUnlock();
 initArcadeLogic();
+initNeonRun();
 initBrickPreview();
-
-// Lazy load games — solo quando il panel arcade viene aperto
-// I moduli vengono scaricati e parsati solo al primo click sul cabinato
-window._lazyLoadGames = async function() {
-  if (window._gamesLoaded) return;
-  window._gamesLoaded = true;
-  const [{ initNeonRun }, { initBrickBreaker }] = await Promise.all([
-    import('./scripts/game-neonrun.js'),
-    import('./scripts/game-brickbreaker.js'),
-  ]);
-  initNeonRun();
-  initBrickBreaker();
-};
+initBrickBreaker();

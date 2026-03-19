@@ -134,7 +134,7 @@ export function initBrickPreview() {
 
   function loop() {
     requestAnimationFrame(loop);
-    if (!visible) return; // skip when off-screen
+    if (!visible || document.body.classList.contains('game-fullscreen-active')) return;
     draw(); step();
   }
 
