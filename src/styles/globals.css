@@ -623,6 +623,7 @@ section:hover .sec-glow-line{opacity:.6;transform:scaleX(1)}
   color:var(--pink);text-shadow:var(--gp);text-align:center;
   background:rgba(4,2,14,.72);
   backdrop-filter:blur(2px);
+  pointer-events:none;
 }
 .game-over-msg.show{display:flex}
 .game-over-sub{font-family: var(--fm), monospace;font-size:.6rem;color:var(--muted);letter-spacing:.15em}

@@ -170,7 +170,6 @@ self.onmessage=function(e){
     if (mobileDir === 0) { const r=canvas.getBoundingClientRect(); mouseX=e.touches[0].clientX-r.left; }
   }, { passive: false });
   canvas.addEventListener('touchstart', e => {
-    if (e.target !== canvas) return;
     e.preventDefault(); hideCursor();
     const r=canvas.getBoundingClientRect(); mouseX=e.touches[0].clientX-r.left;
     if (uiState==='idle')       workerMsg('launch');
