@@ -211,7 +211,7 @@ export function initArcadeLogic() {
   coinOverlay.addEventListener('click', e => { if (e.target === coinOverlay) coinOverlay.classList.remove('active'); });
 
   cabinets.forEach(cab => {
-    cab.addEventListener('click', () => {
+    cab.addEventListener('click', async () => {
       const gameId   = cab.dataset.game;
       const gameName = cab.querySelector('.cab-title').textContent;
       if (activeGameId === gameId) {
@@ -221,6 +221,8 @@ export function initArcadeLogic() {
         setTimeout(() => cab.classList.remove('busy'), 600);
         return;
       }
+      // Lazy load games on first play
+      if (window._lazyLoadGames) await window._lazyLoadGames();
       openGame(gameId, gameName);
     });
   });
