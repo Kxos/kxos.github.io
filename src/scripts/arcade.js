@@ -193,12 +193,10 @@ export function initArcadeLogic() {
       if (window._brickStop)    window._brickStop();
 
       if (isMobile) {
-        // Mobile: fullscreen mode — panel fixed over entire screen
         freezePortfolio();
         arcadePanel.classList.add('visible', 'mobile-fullscreen');
         enterFullscreen(arcadePanel);
         playBoot();
-        // Resize after fullscreen paint
         setTimeout(() => {
           if (window._neonRunResize) window._neonRunResize();
           if (window._brickResize)   window._brickResize();
@@ -206,7 +204,6 @@ export function initArcadeLogic() {
           if (gameId === 'brickbreaker' && window._brickStart)   window._brickStart();
         }, 300);
       } else {
-        // Desktop: mostra il panel PRIMA, poi avvia il gioco dopo che il canvas è visibile
         arcadePanel.classList.add('visible');
         playBoot();
         setTimeout(() => {
@@ -240,7 +237,7 @@ export function initArcadeLogic() {
       return;
     }
 
-    // Desktop: curtain animation
+    // Desktop: curtain + coin animation
     const flash = document.getElementById('ejectFlash');
     agpClose.classList.add('ejecting');
     setTimeout(() => agpClose.classList.remove('ejecting'), 550);
@@ -282,13 +279,17 @@ export function initArcadeLogic() {
     cab.addEventListener('click', () => {
       const gameId   = cab.dataset.game;
       const gameName = cab.querySelector('.cab-title').textContent;
-      if (activeGameId === gameId) {
+
+      // Se un gioco è attivo — qualsiasi cabinato — blocca e mostra errore
+      if (activeGameId) {
         playBusy();
-        cab.classList.remove('busy'); void cab.offsetWidth; cab.classList.add('busy');
-        showBusyToast(cab);
-        setTimeout(() => cab.classList.remove('busy'), 600);
+        const activeCab = document.querySelector(`.cabinet[data-game="${activeGameId}"]`) || cab;
+        activeCab.classList.remove('busy'); void activeCab.offsetWidth; activeCab.classList.add('busy');
+        showBusyToast(activeCab);
+        setTimeout(() => activeCab.classList.remove('busy'), 600);
         return;
       }
+
       openGame(gameId, gameName);
     });
   });
