@@ -9,7 +9,9 @@ export function initBrickBreaker() {
   const startMsg = document.getElementById('bb-start-msg');
   const overMsg  = document.getElementById('bb-over-msg');
   const winMsg   = document.getElementById('bb-win-msg');
-  const scoreDis = document.getElementById('bb-score-display');
+  const scoreDis   = document.getElementById('bb-score-display');
+  const hiscoreDis = document.getElementById('bb-hiscore-display');
+  const livesDis   = document.getElementById('bb-lives-display');
   const btnLeft  = document.getElementById('bb-btn-left');
   const btnRight = document.getElementById('bb-btn-right');
 
@@ -200,14 +202,17 @@ self.onmessage=function(e){
   });
 
   // ── RENDER ──
-  function drawHeart(cx,cy,size,alpha){
-    const s=size*.5;
-    ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle='#ff2d78';
-    if(!isMobile){ctx.shadowColor='#ff2d78';ctx.shadowBlur=10;}
-    ctx.beginPath();ctx.moveTo(cx,cy+s*.35);ctx.bezierCurveTo(cx,cy-s*.1,cx-s,cy-s*.6,cx-s,cy-s*.15);ctx.bezierCurveTo(cx-s,cy+s*.4,cx,cy+s*.85,cx,cy+s*.85);ctx.bezierCurveTo(cx,cy+s*.85,cx+s,cy+s*.4,cx+s,cy-s*.15);ctx.bezierCurveTo(cx+s,cy-s*.6,cx,cy-s*.1,cx,cy+s*.35);ctx.fill();
-    ctx.globalAlpha=alpha*.4;ctx.fillStyle='#ff9fc5';ctx.shadowBlur=0;ctx.beginPath();ctx.arc(cx-s*.27,cy-s*.05,s*.38,0,Math.PI*2);ctx.fill();ctx.restore();
-  }
 
+  function drawHUD() {
+    const s = renderState;
+    if (!s) return;
+    const fs = Math.max(9, W * .013);
+    ctx.font = `bold ${fs}px 'Share Tech Mono',monospace`;
+    if (!isMobile) { ctx.shadowColor='#b44fff'; ctx.shadowBlur=6; }
+    ctx.fillStyle = 'rgba(180,79,255,.9)';
+    ctx.fillText('LV ' + s.level, W/2 - 14, H * .065);
+    ctx.shadowBlur = 0;
+  }
   function render(ts) {
     rafId = requestAnimationFrame(render);
     if (ts - lastTs < TICK_MS) return;
@@ -219,11 +224,9 @@ self.onmessage=function(e){
     // Send input to worker each rendered frame
     if (mouseX >= 0)     workerMsg('paddleMove', { x: mouseX });
     if (mobileDir !== 0) workerMsg('paddleDir', { dir: mobileDir });
-    // Trigger physics tick
     workerMsg('tick');
 
     ctx.clearRect(0, 0, W, H);
-    // BG
     if (bgCanvas) ctx.drawImage(bgCanvas, 0, 0, W, H);
     else { ctx.fillStyle='#04020e'; ctx.fillRect(0,0,W,H); }
 
@@ -270,17 +273,18 @@ self.onmessage=function(e){
       ctx.beginPath(); ctx.arc(s.bx,s.by,s.br,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
     }
 
-    // HUD
-    const fs=Math.max(9,W*.013); ctx.font=`bold ${fs}px 'Share Tech Mono',monospace`;
-    if(!isMobile){ctx.shadowColor='#ff2d78';ctx.shadowBlur=5;}
-    ctx.fillStyle='#ff2d78'; ctx.fillText('HI '+String(s.hiscore).padStart(5,'0'),W-200,H*.065); ctx.shadowBlur=0;
-    if(!isMobile){ctx.shadowColor='#00f5ff';ctx.shadowBlur=5;}
-    ctx.fillStyle='#00f5ff'; ctx.fillText('SCORE '+String(s.score).padStart(5,'0'),W-100,H*.065); ctx.shadowBlur=0;
-    if(scoreDis) scoreDis.textContent=String(s.score).padStart(5,'0');
-    if(!isMobile){ctx.shadowColor='#b44fff';ctx.shadowBlur=6;}
-    ctx.fillStyle='rgba(180,79,255,.9)'; ctx.fillText('LV '+s.level,W/2-14,H*.065); ctx.shadowBlur=0;
-    const hs=Math.max(10,W*.022),hy=H*.055,hg=hs*1.5;
-    for(let i=0;i<3;i++) drawHeart(12+hs*.5+i*hg,hy,hs,i<s.lives?1:.18);
+    // HUD — always on top
+    drawHUD();
+  }
+
+  function updateDOMHud(d) {
+    if (scoreDis)   scoreDis.textContent   = String(d.score   || 0).padStart(5, '0');
+    if (hiscoreDis) hiscoreDis.textContent = String(d.hiscore || 0).padStart(5, '0');
+    if (livesDis) {
+      livesDis.querySelectorAll('.bb-heart').forEach((el, i) => {
+        el.classList.toggle('alive', i < (d.lives || 0));
+      });
+    }
   }
 
   // ── WORKER EVENT HANDLER ──
@@ -291,6 +295,7 @@ self.onmessage=function(e){
       case 'ready':
         renderState = d;
         uiState = d.state || uiState;
+        updateDOMHud(d);
         break;
       case 'launched':
         uiState = 'running';
@@ -298,15 +303,19 @@ self.onmessage=function(e){
         break;
       case 'lifeLost':
         uiState = 'idle';
+        snd_die();
         renderState = { ...renderState, lives: d.lives };
+        updateDOMHud({ ...renderState, lives: d.lives });
         startMsg.classList.remove('hidden');
         break;
       case 'dead':
         uiState = 'dead';
+        snd_die();
         overMsg.classList.add('show');
         break;
       case 'win':
         uiState = 'win';
+        snd_win();
         winMsg.classList.add('show');
         break;
       case 'wall':   snd_wall();        break;

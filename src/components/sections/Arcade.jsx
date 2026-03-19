@@ -218,9 +218,23 @@ export default function Arcade() {
                   <div className="game-title-wrap">
                     <span className="game-label">Muovi il mouse / <kbd style={{border:'1px solid var(--border2)',padding:'.1rem .4rem',fontFamily:'var(--fm)',fontSize:'.55rem',color:'var(--violet)'}}>←→</kbd> per giocare</span>
                   </div>
-                  <div className="game-score-wrap">
-                    <span className="game-score-label">Score</span>
-                    <span className="game-score-val" id="bb-score-display">00000</span>
+                  <div className="bb-hud-wrap">
+                    <div className="bb-hud-item">
+                      <span className="game-score-label">Vite</span>
+                      <span className="bb-lives" id="bb-lives-display">
+                        <span className="bb-heart" data-idx="0"></span>
+                        <span className="bb-heart" data-idx="1"></span>
+                        <span className="bb-heart" data-idx="2"></span>
+                      </span>
+                    </div>
+                    <div className="bb-hud-item">
+                      <span className="game-score-label">Hi-Score</span>
+                      <span className="game-score-val bb-hiscore-val" id="bb-hiscore-display">00000</span>
+                    </div>
+                    <div className="bb-hud-item">
+                      <span className="game-score-label">Score</span>
+                      <span className="game-score-val" id="bb-score-display">00000</span>
+                    </div>
                   </div>
                 </div>
                 <div className="game-canvas-wrap">
@@ -231,11 +245,11 @@ export default function Arcade() {
                   </div>
                   <div className="game-over-msg" id="bb-over-msg">
                     <span>GAME OVER</span>
-                    <span className="game-over-sub">Press SPACE / TAP to retry</span>
+                    <span className="game-over-sub">SPACE / TAP to retry</span>
                   </div>
                   <div className="game-over-msg" id="bb-win-msg" style={{background:'rgba(0,245,255,.08)',borderColor:'var(--cyan)'}}>
                     <span style={{color:'var(--cyan)'}}>YOU WIN!</span>
-                    <span className="game-over-sub">Press SPACE / TAP per livello successivo</span>
+                    <span className="game-over-sub">SPACE / TAP next level</span>
                   </div>
                 </div>
                 <div className="game-hint">

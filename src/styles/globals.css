@@ -604,6 +604,47 @@ section:hover .sec-glow-line{opacity:.6;transform:scaleX(1)}
 #bb-canvas{display:block;width:100%;height:420px;}
 @media(max-width:768px){#bb-canvas{height:320px;}}
 
+.bb-hud-wrap{display:flex;align-items:flex-end;gap:1.5rem;}
+.bb-hud-item{display:flex;flex-direction:column;align-items:flex-end;gap:.2rem}
+
+/* Hi-score in gold per differenziarlo dallo score */
+.bb-hiscore-val{color:var(--gold)!important;text-shadow:0 0 12px var(--gold),0 0 30px rgba(255,217,61,.3)!important;}
+
+/* Vite — cuori SVG synthwave */
+.bb-lives{display:flex;align-items:center;gap:.4rem;height:1.6rem;}
+.bb-heart{
+  display:inline-block;width:22px;height:22px;
+  background:rgba(255,45,120,.12);
+  border:1px solid rgba(255,45,120,.22);
+  border-radius:3px;
+  position:relative;
+  transition:all .3s ease;
+}
+/* cuore SVG via background-image — scala perfettamente col box */
+.bb-heart::before{
+  content:'';
+  position:absolute;
+  inset:3px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 15'%3E%3Cpath d='M8 13.5C8 13.5 1 8.5 1 4.5A3.5 3.5 0 0 1 8 2.8 3.5 3.5 0 0 1 15 4.5C15 8.5 8 13.5 8 13.5Z' fill='rgba(255,45,120,0.25)'/%3E%3C/svg%3E");
+  background-size:contain;
+  background-repeat:no-repeat;
+  background-position:center;
+  transition:background-image .3s;
+}
+.bb-heart.alive{
+  background:rgba(255,45,120,.18);
+  border-color:rgba(255,45,120,.75);
+  box-shadow:0 0 8px rgba(255,45,120,.6),inset 0 0 6px rgba(255,45,120,.15);
+  animation:heartPulse 2s ease-in-out infinite;
+}
+.bb-heart.alive::before{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 15'%3E%3Cpath d='M8 13.5C8 13.5 1 8.5 1 4.5A3.5 3.5 0 0 1 8 2.8 3.5 3.5 0 0 1 15 4.5C15 8.5 8 13.5 8 13.5Z' fill='%23ff2d78'/%3E%3C/svg%3E");
+}
+@keyframes heartPulse{
+  0%,100%{box-shadow:0 0 8px rgba(255,45,120,.6),inset 0 0 6px rgba(255,45,120,.15);}
+  50%{box-shadow:0 0 14px rgba(255,45,120,.9),inset 0 0 10px rgba(255,45,120,.25);}
+}
+
 .game-msg{
   position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:.8rem;
