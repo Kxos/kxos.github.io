@@ -31,7 +31,7 @@ export function initNeonRun() {
 
   let app = null;
   let bgSprite, gridGfx, groundGfx, dinoGfx, obstaclesCont, particleCont, boltsCont;
-  let state='idle', score=0, hiscore=0, frame=0, speed=4;
+  let state='idle', score=0, hiscore=0, frame=0, speed=11.2;
   let particles=[], obstacles=[], nextObs=100, gridOffsetY=0;
   const dino={x:70,vy:0,y:0,onGround:true,ducking:false,legPhase:0,
     get drawY(){return groundLineY-(this.ducking?DUCK_H:DINO_H)+this.y;}};
@@ -180,7 +180,7 @@ export function initNeonRun() {
   }
 
   function reset(){
-    score=0;frame=0;speed=4;
+    score=0;frame=0;speed=11.2;
     dino.y=0;dino.vy=0;dino.onGround=true;dino.ducking=false;dino.legPhase=0;
     obstacles.forEach(o=>{obstaclesCont.removeChild(o.gfx);o.gfx.destroy();});
     obstacles=[];nextObs=100;

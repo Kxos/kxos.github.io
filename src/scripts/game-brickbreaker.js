@@ -204,7 +204,13 @@ self.onmessage=function(e){
     const d=e.data;
     switch(d.type){
       case 'frame': case 'ready':
-        renderState=d; uiState=d.state||uiState; renderFrame(d); updateDOMHud(d); break;
+        renderState=d; uiState=d.state||uiState; renderFrame(d); updateDOMHud(d);
+        // nasconde tutti gli overlay quando il worker torna in idle (es. dopo nextLevel)
+        if(d.state==='idle'){
+          winMsg.classList.remove('show');
+          overMsg.classList.remove('show');
+        }
+        break;
       case 'launched': uiState='running'; startMsg.classList.add('hidden'); break;
       case 'lifeLost': uiState='idle'; snd_die(); updateDOMHud(d); startMsg.classList.remove('hidden'); break;
       case 'dead':  uiState='dead';  snd_die(); overMsg.classList.add('show'); break;
@@ -229,7 +235,7 @@ self.onmessage=function(e){
     const r=canvasEl.getBoundingClientRect();mouseX=e.touches[0].clientX-r.left;
     if(uiState==='idle')workerMsg('launch');
     else if(uiState==='dead'){stopGame();resize();startGame();}
-    else if(uiState==='win'){workerMsg('nextLevel');}
+    else if(uiState==='win'){winMsg.classList.remove('show');workerMsg('nextLevel');}
   },{passive:false});
   canvasEl.addEventListener('touchend',()=>showCursor(),{passive:true});
   function startMove(dir){mobileDir=dir;mouseX=-1;}
@@ -247,7 +253,7 @@ self.onmessage=function(e){
       e.preventDefault();
       if(uiState==='idle')workerMsg('launch');
       else if(uiState==='dead'){stopGame();resize();startGame();}
-      else if(uiState==='win'){workerMsg('nextLevel');}
+      else if(uiState==='win'){winMsg.classList.remove('show');workerMsg('nextLevel');}
     }
   });
 
