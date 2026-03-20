@@ -30,7 +30,7 @@ export function initNeonRun() {
   const DINO_W=26, DINO_H=34, DUCK_H=18;
 
   let app = null;
-  let bgSprite, gridGfx, groundGfx, dinoGfx, obstaclesCont, particleCont;
+  let bgSprite, gridGfx, groundGfx, dinoGfx, obstaclesCont, particleCont, boltsCont;
   let state='idle', score=0, hiscore=0, frame=0, speed=4;
   let particles=[], obstacles=[], nextObs=100, gridOffsetY=0;
   const dino={x:70,vy:0,y:0,onGround:true,ducking:false,legPhase:0,
@@ -53,11 +53,23 @@ export function initNeonRun() {
     // stars
     const sc=isMobile?20:55;
     for(let i=0;i<sc;i++){const x=Math.random()*LW,y=Math.random()*(LH*.52),r=Math.random()*1.1+.3;g.circle(x,y,r).fill({color:0xf0ecff,alpha:.3+Math.random()*.4});}
-    // sun
+    // sun — lower semicircle, synthwave retro
     const sx=LW/2,sy=LH*.38,sr=75;
-    if(!isMobile){g.circle(sx,sy,sr*2.2).fill({color:0xff2d78,alpha:.07});g.circle(sx,sy,sr*1.5).fill({color:0xff6baf,alpha:.1});}
-    g.arc(sx,sy,sr,Math.PI,0).lineTo(sx,sy).closePath().fill({color:0xff2d78});
-    for(let i=0;i<8;i++){const ly=sy-5-i*7;if(ly<sy-sr)break;g.rect(sx-sr,ly,sr*2,3.5).fill({color:0x04020e,alpha:.88});}
+    if(!isMobile){
+      g.circle(sx,sy,sr*2.2).fill({color:0xff2d78,alpha:.06});
+      g.circle(sx,sy,sr*1.5).fill({color:0xff6baf,alpha:.08});
+    }
+    // Semicircle: moveTo left edge of diameter, arc clockwise to right edge, close with straight line (diameter)
+    g.moveTo(sx-sr,sy).arc(sx,sy,sr,Math.PI,0,false).lineTo(sx-sr,sy).fill({color:0xff2d78});
+    // stripes clipped inside semicircle via chord width (only below center line)
+    for(let i=0;i<8;i++){
+      const ly=sy-5-i*7;
+      if(ly<sy-sr) break;
+      const stripeH=3.5;
+      const dy=ly+stripeH/2-sy;
+      const halfW=Math.sqrt(Math.max(0,sr*sr-dy*dy));
+      g.rect(sx-halfW,ly,halfW*2,stripeH).fill({color:0x04020e,alpha:.88});
+    }
     // mountains
     [mtn2,mtn1].forEach((pts,idx)=>{
       const flat=pts.flatMap(p=>[p.x,p.y]);
@@ -91,7 +103,8 @@ export function initNeonRun() {
     gridGfx=new Graphics(); app.stage.addChild(gridGfx);
     groundGfx=new Graphics(); app.stage.addChild(groundGfx);
     obstaclesCont=new Container(); app.stage.addChild(obstaclesCont);
-    particleCont=new Container(); app.stage.addChild(particleCont);
+    particleCont=new Graphics(); app.stage.addChild(particleCont); // single batch Graphics
+    boltsCont=new Graphics(); app.stage.addChild(boltsCont);
     dinoGfx=new Graphics(); app.stage.addChild(dinoGfx);
 
     drawGround();
@@ -171,8 +184,9 @@ export function initNeonRun() {
     dino.y=0;dino.vy=0;dino.onGround=true;dino.ducking=false;dino.legPhase=0;
     obstacles.forEach(o=>{obstaclesCont.removeChild(o.gfx);o.gfx.destroy();});
     obstacles=[];nextObs=100;
-    particles.forEach(p=>{if(p.gfx){particleCont.removeChild(p.gfx);p.gfx.destroy();}});
-    particles=[];gridOffsetY=0;
+    particles=[];
+    if(particleCont) particleCont.clear();
+    gridOffsetY=0;
   }
   window._neonRunReset=function(){state='idle';reset();startMsg.classList.remove('hidden');overMsg.classList.remove('show');};
 
@@ -198,8 +212,21 @@ export function initNeonRun() {
       gridOffsetY=(gridOffsetY+speed*.5)%60;
       gridGfx.clear();
       const horizon=LH*.5;
-      for(let x=-6;x<=6;x++){const bx=LW/2+x*72;gridGfx.moveTo(bx,horizon).lineTo(LW/2+(bx-LW/2)*5,groundLineY+6).stroke({color:0xff2d78,alpha:.08,width:.8});}
-      for(let i=0;i<10;i++){const t=(i/10+gridOffsetY/600)%1;const y=horizon+(groundLineY-horizon)*Math.pow(t,1.5);const xoff=(1-t)*LW*.5;gridGfx.moveTo(xoff,y).lineTo(LW-xoff,y).stroke({color:0xff2d78,alpha:t*.28,width:.8});}
+      // vertical perspective lines — only draw if destination is within canvas
+      for(let x=-6;x<=6;x++){
+        const bx=LW/2+x*72;
+        const ex=LW/2+(bx-LW/2)*5;
+        if(ex < 0 || ex > LW) continue; // skip lines that exit canvas
+        gridGfx.moveTo(bx,horizon).lineTo(ex,groundLineY+6).stroke({color:0xff2d78,alpha:.08,width:.8});
+      }
+      // horizontal scan lines — xoff already constrains them naturally
+      for(let i=0;i<10;i++){
+        const t=(i/10+gridOffsetY/600)%1;
+        const y=horizon+(groundLineY-horizon)*Math.pow(t,1.5);
+        const xoff=(1-t)*LW*.5;
+        if(xoff>=LW/2) continue; // skip fully collapsed lines
+        gridGfx.moveTo(xoff,y).lineTo(LW-xoff,y).stroke({color:0xff2d78,alpha:t*.28,width:.8});
+      }
     }
 
     if(state==='running'){
@@ -212,17 +239,55 @@ export function initNeonRun() {
         if(o.type==='bird') redrawObs(o,Math.sin(frame*.22)*7);
         else o.gfx.x=o.x;
       });
+
+      // ── ELECTRIC BOLTS on tall towers (desktop only) ──
+      if(!isMobile && boltsCont){
+        boltsCont.clear();
+        const t=frame*.08;
+        obstacles.filter(o=>o.type==='tall').forEach(o=>{
+          const cx2=o.x+o.w/2;
+          const p1=Math.sin(t*2.3), p2=Math.sin(t*2.3+Math.PI);
+          // helper: jagged lightning bolt between two points
+          const bolt=(x1,y1,x2,y2,segs,color,alpha)=>{
+            const dx=(x2-x1)/segs, dy=(y2-y1)/segs;
+            for(let i=0;i<segs-1;i++){
+              const j=Math.sin(t*6.7+i*2.9+x1*.02)*7;
+              const ax=x1+dx*i+j, ay=y1+dy*i+j*.4;
+              const bx2=x1+dx*(i+1)+(i===segs-2?0:Math.sin(t*6.7+(i+1)*2.9+x1*.02)*7);
+              const by2=y1+dy*(i+1)+(i===segs-2?0:Math.sin(t*6.7+(i+1)*2.9+x1*.02)*7*.4);
+              boltsCont.moveTo(ax,ay).lineTo(bx2,by2).stroke({color,alpha,width:1.2});
+            }
+          };
+          // horizontal arcs from isolators to center
+          if(p1>-.2) bolt(o.x-5,o.y+2,cx2,o.y+2,6,0x00f5ff,.55+p1*.35);
+          if(p2>-.2) bolt(o.x+o.w+5,o.y+2,cx2,o.y+2,6,0x00f5ff,.55+p2*.35);
+          // diagonal arcs
+          if(p1>.3) bolt(o.x-5,o.y+2,cx2-3,o.y+o.h*.44,8,0x7bf5ff,.35);
+          if(p2>.3) bolt(o.x+o.w+5,o.y+2,cx2+3,o.y+o.h*.44,8,0x7bf5ff,.35);
+          // vertical center bolts
+          bolt(cx2,o.y+7,cx2,o.y+o.h*.43,9,0xffd93d,.55);
+          bolt(cx2,o.y+o.h*.49,cx2,o.y+o.h-7,9,0xffd93d,.55);
+          // pulsing glow on isolators
+          const gr=5+Math.abs(Math.sin(t*3.1))*4;
+          const glowA=.25+Math.abs(Math.sin(t*3.1))*.45;
+          boltsCont.circle(o.x-5,o.y+2,gr).fill({color:0x00f5ff,alpha:glowA});
+          boltsCont.circle(o.x+o.w+5,o.y+2,gr).fill({color:0x00f5ff,alpha:glowA});
+        });
+      }
       if(frame%6===0){const prev=score;score++;hiscore=Math.max(hiscore,score);if(score%100===0&&score!==prev)snd_milestone();}
       speed=4+Math.floor(score/80)*.6;
       if(dino.onGround&&!dino.ducking)snd_step(frame,speed);
       const dw=dino.ducking?DINO_W+8:DINO_W,dh=dino.ducking?DUCK_H:DINO_H;
       for(const o of obstacles){if(collides(dino.x,groundLineY-dh+dino.y,dw,dh,o)){state='dead';snd_die();spawnParticles(dino.x+dw/2,groundLineY-dh/2,'die');overMsg.classList.add('show');break;}}
       if(!isMobile){
-        particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=p.decay;
-          if(!p.gfx){p.gfx=new Graphics();particleCont.addChild(p.gfx);}
-          p.gfx.clear();if(p.life>0)p.gfx.circle(p.x,p.y,Math.max(0,p.r*p.life)).fill({color:p.color,alpha:p.life*.9});
+        particleCont.clear();
+        particles.forEach(p=>{
+          p.x+=p.vx; p.y+=p.vy; p.vy+=.14; p.life-=p.decay;
         });
-        particles=particles.filter(p=>{if(p.life<=0){if(p.gfx){particleCont.removeChild(p.gfx);p.gfx.destroy();}return false;}return true;});
+        particles=particles.filter(p=>p.life>0);
+        particles.forEach(p=>{
+          particleCont.circle(p.x,p.y,Math.max(0,p.r*p.life)).fill({color:p.color,alpha:p.life*.9});
+        });
       }
     }
 
