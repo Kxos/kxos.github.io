@@ -48,11 +48,11 @@ let W=0,H=0,level=1,score=0,hiscore=0,lives=3,hitCount=0,state='idle';
 let paddle={},ball={},bricks=[];
 const BR=${isMobile?5:7},BC=${isMobile?8:10},BP=${isMobile?3:4},BT=0.12;
 function bspd(){return Math.min(W,H)*0.016*(1+(level-1)*0.2);}
-function iPaddle(){const pw=Math.min(${isMobile?90:100},W*.18);paddle={w:pw,h:Math.max(10,H*.022),x:W/2-pw/2,y:H-H*.08};}
+function iPaddle(){const pw=Math.min(${isMobile?90:140},W*${isMobile?.18:.24});paddle={w:pw,h:Math.max(10,H*.022),x:W/2-pw/2,y:H-H*.08};}
 function iBricks(){bricks=[];const bw=(W-BP*(BC+1))/BC,bh=Math.min(${isMobile?14:18},(H*.35)/BR-BP),ty=H*BT;for(let r=0;r<BR;r++){const ci=r%7,hp=r<2?2:1;for(let c=0;c<BC;c++)bricks.push({x:BP+c*(bw+BP),y:ty+r*(bh+BP),w:bw,h:bh,alive:true,hp,ci,color:RC_CSS[ci],hex:RC[ci],ft:0});}}
 function iBall(){const spd=bspd(),ang=-Math.PI/2+(Math.random()-.5)*.5;ball={x:W/2,y:paddle.y-12,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,r:Math.max(6,W*.012),stuck:true};}
 function reset(kl){score=0;lives=3;hitCount=0;if(!kl)level=1;state='idle';iPaddle();iBricks();iBall();}
-function boost(){const max=bspd()*2.2,cur=Math.sqrt(ball.vx*ball.vx+ball.vy*ball.vy);if(cur<max){const b=Math.min(1.06,max/cur);ball.vx*=b;ball.vy*=b;}hitCount++;}
+function boost(){const max=bspd()*${isMobile?2.2:1.5},cur=Math.sqrt(ball.vx*ball.vx+ball.vy*ball.vy);if(cur<max){const b=Math.min(${isMobile?1.06:1.025},max/cur);ball.vx*=b;ball.vy*=b;}hitCount++;}
 function post(type,d={}){self.postMessage({type,...d});}
 function snap(){return{px:paddle.x,py:paddle.y,pw:paddle.w,ph:paddle.h,bx:ball.x,by:ball.y,br:ball.r,bstuck:ball.stuck,bricks:bricks.map(b=>b.alive?{x:b.x,y:b.y,w:b.w,h:b.h,hp:b.hp,hex:b.hex,ci:b.ci,ft:b.ft}:null),score,hiscore,lives,level,state};}
 function step(){
@@ -249,12 +249,17 @@ self.onmessage=function(e){
   });
   window.addEventListener('keydown',e=>{
     if(!canvasEl.closest('.game-inner')?.classList.contains('active'))return;
+    if(e.code==='ArrowLeft'  || e.key==='ArrowLeft')  { e.preventDefault(); startMove(-1); return; }
+    if(e.code==='ArrowRight' || e.key==='ArrowRight') { e.preventDefault(); startMove(1);  return; }
     if(e.code==='Space'||e.key===' '){
       e.preventDefault();
       if(uiState==='idle')workerMsg('launch');
       else if(uiState==='dead'){stopGame();resize();startGame();}
       else if(uiState==='win'){winMsg.classList.remove('show');workerMsg('nextLevel');}
     }
+  });
+  window.addEventListener('keyup',e=>{
+    if(e.code==='ArrowLeft'||e.key==='ArrowLeft'||e.code==='ArrowRight'||e.key==='ArrowRight') stopMove();
   });
 
   function launch(){if(uiState!=='idle')return;workerMsg('launch');}
