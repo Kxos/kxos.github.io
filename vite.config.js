@@ -15,6 +15,7 @@ export default defineConfig({
       output: {
         // Chunk separati per il gioco — non viene scaricato se non apri l'arcade
         manualChunks: {
+          'pixi': ['pixi.js'],
           'dino-runner': [
             './src/games/dino-runner/DinoRunner.jsx',
             './src/games/dino-runner/gameLoop.js',
