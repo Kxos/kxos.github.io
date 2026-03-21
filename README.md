@@ -1,4 +1,4 @@
-# Vito Iannone — Portfolio
+# Vito Iannone — Portfolio 
 
 Portfolio personale in stile synthwave costruito con **React + Vite**.
 
