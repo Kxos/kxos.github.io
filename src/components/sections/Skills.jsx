@@ -1,38 +1,55 @@
+import { useLang } from '../../i18n/LangContext'
+
+function SkillCard({ group, index }) {
+  return (
+    <div className={`skill-card sr accent-${group.accent}${group.wide ? ' wide' : ''}`}>
+      <div className="skill-card-head">
+        <span className="skill-card-num">{String(index + 1).padStart(2, '0')}</span>
+        <span className="skill-card-label">{group.label}</span>
+        <span className="skill-card-count">{group.tags.length}</span>
+      </div>
+      <div className="skill-tags">
+        {group.tags.map(tag => <span className="stag" key={tag}>{tag}</span>)}
+      </div>
+    </div>
+  )
+}
+
 export default function Skills() {
+  const { t } = useLang()
+  const s = t.skills
+  const catIndex = Object.fromEntries(s.groups.map((g, i) => [g.key, i]))
   return (
     <section id="skills">
       <canvas className="section-canvas" data-sec="skills"></canvas>
       <div className="sec-glow-line"></div>
       <div className="container">
         <div className="sec-eyebrow sr"><span className="sec-eyebrow-num">02</span><span className="sec-eyebrow-line"></span></div>
-        <h2 className="sec-title sr">Skills &amp; Competenze</h2>
-        <div className="skills-layout">
-          <div className="sr-left">
-            <div className="skill-group">
-              <div className="skill-group-label">Backend</div>
-              <div className="skill-tags"><span className="stag">Java</span><span className="stag">Spring Boot</span><span className="stag">REST API</span><span className="stag">Microservizi</span><span className="stag">PHP</span></div>
-            </div>
-            <div className="skill-group">
-              <div className="skill-group-label">Frontend</div>
-              <div className="skill-tags"><span className="stag">React</span><span className="stag">Next.js</span><span className="stag">TypeScript</span><span className="stag">JavaScript</span><span className="stag">AngularJS</span><span className="stag">HTML5</span><span className="stag">CSS3</span></div>
-            </div>
-            <div className="skill-group">
-              <div className="skill-group-label">Database</div>
-              <div className="skill-tags"><span className="stag">MySQL</span><span className="stag">SQL Server</span><span className="stag">PostgreSQL</span><span className="stag">DBMS Design</span></div>
-            </div>
-            <div className="skill-group">
-              <div className="skill-group-label">Tools &amp; Metodologie</div>
-              <div className="skill-tags"><span className="stag">GitHub</span><span className="stag">GitLab</span><span className="stag">Jira</span><span className="stag">Scrum</span><span className="stag">DevOps</span><span className="stag">Code Review</span><span className="stag">Android</span></div>
-            </div>
+        <h2 className="sec-title sr">{s.title}</h2>
+
+        <div className="skill-core sr">
+          <div className="skill-core-head">
+            <span className="skill-core-prompt">&gt;</span>
+            <span className="skill-core-label">{s.coreLabel}</span>
+            <span className="skill-core-caret" aria-hidden="true"></span>
+            <span className="skill-core-hint">{'// ' + s.coreHint}</span>
           </div>
-          <div className="sbar-wrap">
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">Java / Spring Boot</span><span className="sbar-pct">90%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="90"></div></div></div>
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">React / Next.js</span><span className="sbar-pct">88%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="88"></div></div></div>
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">TypeScript / JavaScript</span><span className="sbar-pct">85%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="85"></div></div></div>
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">Database Design</span><span className="sbar-pct">82%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="82"></div></div></div>
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">Team Leadership</span><span className="sbar-pct">78%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="78"></div></div></div>
-            <div className="sbar"><div className="sbar-top"><span className="sbar-name">DevOps / Agile</span><span className="sbar-pct">75%</span></div><div className="sbar-track"><div className="sbar-fill" data-w="75"></div></div></div>
+          <div className="skill-core-list">
+            {s.core.map(item => {
+              const group = s.groups[catIndex[item.cat]]
+              return (
+              <div className={`skill-core-tile accent-${group.accent}`} key={item.name} title={group.label}>
+                <span className="skill-core-cat">{String(catIndex[item.cat] + 1).padStart(2, '0')}</span>
+                <span className="skill-core-name">{item.name}</span>
+                <span className="skill-core-meta">{item.meta}</span>
+              </div>
+              )
+            })}
           </div>
+        </div>
+
+        <div className="skill-grid">
+          {s.groups.map((g, i) => <SkillCard group={g} index={i} key={i} />)}
         </div>
       </div>
     </section>

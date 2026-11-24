@@ -1,6 +1,22 @@
 import { useEffect, useRef } from 'react'
+import { useLang } from '../../i18n/LangContext'
+import { CV_URL } from '../../i18n/content'
+
+const SECTIONS = ['about', 'skills', 'experience', 'education', 'projects', 'contact']
+
+function LangToggle({ className = '' }) {
+  const { lang, t, toggle } = useLang()
+  return (
+    <button type="button" className={`lang-toggle ${className}`} onClick={toggle} aria-label={t.nav.switchTo} title={t.nav.switchTo}>
+      <span className={lang === 'en' ? 'on' : ''}>EN</span>
+      <span className="lang-sep">/</span>
+      <span className={lang === 'it' ? 'on' : ''}>IT</span>
+    </button>
+  )
+}
 
 export default function Navbar() {
+  const { t } = useLang()
   const navRef = useRef(null)
   const hamburgerRef = useRef(null)
   const overlayRef = useRef(null)
@@ -20,15 +36,17 @@ export default function Navbar() {
     }
     hamburger.addEventListener('click', onHamburger)
 
-    overlay.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        hamburger.classList.remove('open')
-        overlay.classList.remove('open')
-      })
-    })
+    const close = () => {
+      hamburger.classList.remove('open')
+      overlay.classList.remove('open')
+    }
+    const links = overlay.querySelectorAll('a')
+    links.forEach(a => a.addEventListener('click', close))
 
     return () => {
       window.removeEventListener('scroll', onScroll)
+      hamburger.removeEventListener('click', onHamburger)
+      links.forEach(a => a.removeEventListener('click', close))
     }
   }, [])
 
@@ -38,18 +56,16 @@ export default function Navbar() {
         <div className="nav-inner">
           <a href="#hero" className="nav-brand">V<span className="nb-dot">.</span>I</a>
           <ul className="nav-links">
-            <li><a href="#about">About</a></li>
-            <li><a href="#skills">Skills</a></li>
-            <li><a href="#experience">Experience</a></li>
-            <li><a href="#education">Education</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#contact">Contact</a></li>
+            {SECTIONS.map(id => (
+              <li key={id}><a href={`#${id}`}>{t.nav[id]}</a></li>
+            ))}
             <li>
               <a href="#game" className="nav-arcade-link" id="navArcadeLink">
                 <span className="nav-arcade-lock">🔒</span>
                 <span className="nav-arcade-text">???</span>
               </a>
             </li>
+            <li><LangToggle /></li>
           </ul>
           <button className="nav-hamburger" id="hamburger" ref={hamburgerRef} aria-label="Menu">
             <span /><span /><span />
@@ -58,14 +74,12 @@ export default function Navbar() {
       </nav>
 
       <div className="nav-mobile-overlay" id="mob-overlay" ref={overlayRef}>
-        <a href="#about" className="mob-link">About</a>
-        <a href="#skills" className="mob-link">Skills</a>
-        <a href="#experience" className="mob-link">Experience</a>
-        <a href="#education" className="mob-link">Education</a>
-        <a href="#projects" className="mob-link">Projects</a>
-        <a href="#contact" className="mob-link">Contact</a>
+        {SECTIONS.map(id => (
+          <a href={`#${id}`} className="mob-link" key={id}>{t.nav[id]}</a>
+        ))}
         <a href="#game" className="mob-link mob-arcade-link" id="mobArcadeLink">🔒 ???</a>
-        <a href="Vito_Iannone_CV.pdf" download className="mob-cv">↓ Scarica CV</a>
+        {CV_URL && <a href={CV_URL} download className="mob-cv">{t.nav.cv}</a>}
+        <LangToggle className="lang-toggle-mobile" />
       </div>
     </>
   )

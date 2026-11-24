@@ -1,4 +1,10 @@
+import { useLang } from '../../i18n/LangContext'
+import { CV_URL } from '../../i18n/content'
+import { DownloadIcon } from '../ui/Icons'
+
 export default function Hero() {
+  const { t } = useLang()
+  const h = t.hero
   return (
     <section id="hero">
       <canvas id="hero-canvas"></canvas>
@@ -19,35 +25,37 @@ export default function Hero() {
           <div className="hero-tag">
             <span className="hero-tag-line"></span>
             <span className="hero-tag-dot"></span>
-            Software Engineer · Bari, Italia
+            {h.tag}
           </div>
           <h1 className="hero-name">
             <span className="fn">Vito</span>
             <span className="ln">Iannone</span>
           </h1>
           <p className="hero-role">
-            FE Team Lead &amp; Full Stack Dev <span className="at">@</span> DXC Technology
+            {h.role} <span className="at">@</span> {h.company}
           </p>
           <p className="hero-desc">
-            Costruisco sistemi web scalabili e interfacce ad alto impatto.<br/>
-            Java · Spring Boot · React · Next.js — dal backend al pixel finale.
+            {h.desc[0]}<br/>
+            {h.desc[1]}
           </p>
           <div className="hero-btns">
             <a href="#contact" className="btn btn-primary">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              Contattami
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              {h.contact}
             </a>
-            <a id="cv-hero" href="Vito_Iannone_CV.pdf" download className="btn btn-secondary">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Scarica CV
-            </a>
+            {CV_URL && (
+              <a id="cv-hero" href={CV_URL} download className="btn btn-secondary">
+                <DownloadIcon />
+                {h.cv}
+              </a>
+            )}
           </div>
         </div>
       </div>
 
       <div className="hero-scroll">
         <div className="hs-line"></div>
-        <span className="hs-text">scroll</span>
+        <span className="hs-text">{h.scroll}</span>
       </div>
     </section>
   )
