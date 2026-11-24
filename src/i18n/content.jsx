@@ -6,8 +6,6 @@
  * senza nomi di clienti, enti, repository o URL interni.
  */
 
-/** Percorso del CV da scaricare (servito da /public). null = pulsanti CV nascosti. */
-export const CV_URL = null
 
 export const LINKS = {
   github: 'https://github.com/Kxos',
@@ -48,6 +46,7 @@ const skillGroups = {
 
 export const content = {
   it: {
+    cvUrl: '/cv/Vito_Iannone_CV_IT.pdf',
     meta: {
       title: 'Vito Iannone — Software Engineer',
       description: 'Vito Iannone — Software Engineer full-stack e Front-End Team Lead. React, Next.js, Angular, TypeScript, Spring Boot.',
@@ -196,6 +195,7 @@ export const content = {
   },
 
   en: {
+    cvUrl: '/cv/Vito_Iannone_CV_EN.pdf',
     meta: {
       title: 'Vito Iannone — Software Engineer',
       description: 'Vito Iannone — full-stack software engineer and front-end team lead. React, Next.js, Angular, TypeScript, Spring Boot.',

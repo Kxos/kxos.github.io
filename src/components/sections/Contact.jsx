@@ -1,5 +1,5 @@
 import { useLang } from '../../i18n/LangContext'
-import { CV_URL, LINKS } from '../../i18n/content'
+import { LINKS } from '../../i18n/content'
 import { DownloadIcon, GitHubIcon } from '../ui/Icons'
 
 export default function Contact() {
@@ -15,9 +15,9 @@ export default function Contact() {
         <div className="contact-inner sr">
           <p className="contact-sub">{c.sub[0]}<br/>{c.sub[1]}</p>
           <div><a id="contact-email" className="contact-email-btn" href="#">vito.iannone90&#64;gmail.com</a></div>
-          {CV_URL && (
+          {t.cvUrl && (
             <div className="cv-block">
-              <a id="cv-contact" href={CV_URL} download className="cv-btn">
+              <a id="cv-contact" href={t.cvUrl} download className="cv-btn">
                 <DownloadIcon size={16} />
                 {c.cv}
               </a>

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { useLang } from '../../i18n/LangContext'
-import { CV_URL } from '../../i18n/content'
 
 const SECTIONS = ['about', 'skills', 'experience', 'education', 'projects', 'contact']
 
@@ -78,7 +77,7 @@ export default function Navbar() {
           <a href={`#${id}`} className="mob-link" key={id}>{t.nav[id]}</a>
         ))}
         <a href="#game" className="mob-link mob-arcade-link" id="mobArcadeLink">🔒 ???</a>
-        {CV_URL && <a href={CV_URL} download className="mob-cv">{t.nav.cv}</a>}
+        {t.cvUrl && <a href={t.cvUrl} download className="mob-cv">{t.nav.cv}</a>}
         <LangToggle className="lang-toggle-mobile" />
       </div>
     </>

@@ -1,5 +1,4 @@
 import { useLang } from '../../i18n/LangContext'
-import { CV_URL } from '../../i18n/content'
 import { DownloadIcon } from '../ui/Icons'
 
 export default function Hero() {
@@ -43,8 +42,8 @@ export default function Hero() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               {h.contact}
             </a>
-            {CV_URL && (
-              <a id="cv-hero" href={CV_URL} download className="btn btn-secondary">
+            {t.cvUrl && (
+              <a id="cv-hero" href={t.cvUrl} download className="btn btn-secondary">
                 <DownloadIcon />
                 {h.cv}
               </a>
